@@ -20,15 +20,9 @@ RSpec.configure do |config|
   config.formatter = :documentation # :progress, :html, :textmate
 
   config.before(:each) do
-    DatabaseCleaner.start
+
   end
   config.after(:each) do
-    DatabaseCleaner.clean
+
   end
 end
-
-ActiveRecord::Base.establish_connection(
-  :adapter => "sqlite3",
-  :database => ":memory:"
-)
-ActiveRecord::Migration.verbose = false

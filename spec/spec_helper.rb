@@ -10,6 +10,7 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 #DatabaseCleaner.strategy = :truncation
 
 RSpec.configure do |config|
+
    # Use color in STDOUT
   config.color_enabled = true
 

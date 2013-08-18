@@ -17,7 +17,6 @@ describe "Wrapi::Manager" do
 
     context 'rate limit denials' do 
       it 'should punt to next client'
-
     end
 
   end

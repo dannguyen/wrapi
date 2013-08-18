@@ -7,3 +7,4 @@ end
 
 include Wrapi
 require 'wrapi/wrangler'
+require 'wrapi/fetched_response'

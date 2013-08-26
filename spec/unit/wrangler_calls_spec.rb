@@ -14,6 +14,4 @@ describe 'Wrapi::Wrangler' do
     
 
 
-
-
 end

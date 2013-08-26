@@ -23,6 +23,18 @@ describe 'ClientPool' do
       end
     end
 
+    context "add clients" do 
+      it 'should add one client' do 
+        @pool.add_clients({name: 'Dan', id: 'hello world'})
+        expect(@pool.size).to eq 1
+      end
+
+      it 'should add an array of clients' do 
+        @pool.add_clients(4.times.map )
+        expect(@pool.size).to eq 4
+      end
+    end
+
 
 
   end

@@ -33,6 +33,8 @@ describe "Wrapi::Manager" do
     it 'should wrap each client in ManagedClient' do 
       expect(@manager.find_client).to be_a ManagedClient
     end
+
+    it 'should care about delegation, I think?'
   end
 
 

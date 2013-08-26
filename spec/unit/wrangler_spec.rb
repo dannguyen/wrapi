@@ -7,6 +7,24 @@ end
 describe 'Wrapi::Wrangler' do 
 
 
+  context 'credentializing'  do 
+
+    it 'has a credentials_array that can be accessed' do 
+      pending " figuring out parsing order"
+      expect(AwesomeApeWrangler.new.credentials_array).to be_an Array
+    end
+
+    describe '#parse_credentials' do 
+      it 'should set credentializing block so client can configure on unique basis' do 
+        pending " figuring out parsing order"
+      # expect{|b|  AwesomeApeWrangler.parse_credentials }.to yield_with_args( AwesomeApeWrangler.credentials_array) 
+      end
+    end
+
+    it 'should read from credentials_array '
+  end
+
+
   context 'configuration' do 
     context 'client_wrapping' do 
       it 'should wrap a client in Wrapi::Client'
@@ -20,6 +38,7 @@ describe 'Wrapi::Wrangler' do
         it 'should have a default wait'
       end
     end
+
 
 
     context 'error handling' do 
@@ -66,15 +85,5 @@ describe 'Wrapi::Wrangler' do
 
   end
 
-  context 'credentializing' do 
-    it 'shoudl set credentializing block so client can configure on unique basis'
-    it 'should read a list of credentials'
-  end
-
-
-  context 'convenience calls' do 
-    it 'should use manager to handle batch calls'
-    it 'should use manager to handle singular calls'
-  end
 
 end

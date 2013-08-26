@@ -10,5 +10,5 @@ end
 
 gem 'hashie'
 gem 'andand'
-gem 'active_support', '~> 3.2.14'
+gem 'activesupport', '~> 3.2.14'
 

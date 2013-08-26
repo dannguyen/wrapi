@@ -7,6 +7,7 @@ module Wrapi
 
     included do 
       class_attribute :list_of_handled_errors
+      attr_reader :credentials
     end
 
 
@@ -30,7 +31,28 @@ module Wrapi
       def handled_errors
         self.list_of_handled_errors ||= Hashie::Mash.new
       end
+
+
+
+      def parse_credentials(*args)
+        # Abstract
+      end
+
+      def load_credentials(*args)
+        # Abstract
+      end
+
+      def initialize_client(credential_unit)
+        
+      end
+
+
+      def credentialize
+        @credentials = parse_credentials load_credentials
+      end
     end
 
   end
 end
+
+require_relative 'client_pool'

@@ -55,4 +55,4 @@ module Wrapi
   end
 end
 
-require_relative 'client_pool'
+require_relative 'manager' 

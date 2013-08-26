@@ -1,17 +1,29 @@
 module Wrapi
   class ClientPool
 
-    def initialize(clientpool_array)            
-      @_pool = clientpool_array
+    def initialize(clientpool=nil)            
+      @_pool = []      
+      add_clients( clientpool ) unless clientpool.nil?
     end
 
     def add_clients(arr)
-      array = arr.is_a?(Hash) ? [arr] : Array(arr)
-      array.each do |client|
-        @_pool << client 
+      arr.each do |client|
+        add_client(client)
       end
       
       nil
+    end
+
+    def add_client(ct)
+      raise ArgumentError, "Only ManagedClients can be added, not #{ct.class}" unless ct.is_a?( ManagedClient ) 
+      @_pool << ct 
+
+      nil
+    end
+
+
+    def clients
+      @_pool
     end
 
     def empty?

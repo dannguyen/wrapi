@@ -1,5 +1,32 @@
+require_relative 'client_pool'
+require_relative 'managed_client'
+
+
 module Wrapi
   class Manager
+
+
+    def initialize
+      @pool = ClientPool.new
+    end
+
+    def add_clients(arr)
+      array = arr.is_a?(Hash) ? [arr] : Array(arr) 
+
+      array.each do |client|
+        @pool.add_client ManagedClient.new( client ) 
+      end
+      
+      nil
+    end
+
+    def client_count
+      @pool.size
+    end
+
+    def find_client
+      @pool.clients.first
+    end
 
     def fetch(client_foo, opts={})
 
@@ -12,6 +39,10 @@ module Wrapi
 
 
     end
+
+
+
+
 
   end
 end

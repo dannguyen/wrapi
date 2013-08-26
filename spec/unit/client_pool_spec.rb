@@ -10,7 +10,7 @@ describe 'ClientPool' do
     end
 
     before(:each) do 
-      @pool = ClientPool.new([])
+      @pool = ClientPool.new()
     end
 
     context "emptiness" do 
@@ -24,13 +24,21 @@ describe 'ClientPool' do
     end
 
     context "add clients" do 
+      before(:each) do 
+        @client = ManagedClient.new(nil)
+      end
+
+      it 'should raise argument if not a managed client' do 
+        expect{ @pool.add_clients([1,2]) }.to raise_error ArgumentError
+      end
+
       it 'should add one client' do 
-        @pool.add_clients({name: 'Dan', id: 'hello world'})
+        @pool.add_client(@client)
         expect(@pool.size).to eq 1
       end
 
       it 'should add an array of clients' do 
-        @pool.add_clients(4.times.map )
+        @pool.add_clients(4.times.map{ @client } )
         expect(@pool.size).to eq 4
       end
     end

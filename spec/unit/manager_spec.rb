@@ -1,94 +1,38 @@
 require 'spec_helper'
 
-
-
-
 describe "Wrapi::Manager" do
 
-  describe '#fetch' do 
+  before(:each) do 
+    @manager = Manager.new    
+  end
 
-
-    context 'arguments' do 
-      describe 'standard call with message and args' do 
-        it 'should respond to message name and no args'
-        it 'should respond to message name and several args'
-      end
-
-      describe 'custom proc' do 
-        it 'should accept a proc with first arg as a client reference'
-        it 'should yield control and pass along client reference'
-      end
+  context 'pool interface' do 
+    it 'should have a pool with initially 0 clients' do 
+      expect(@manager.client_count).to eq 0
     end
 
-    context 'block' do 
-      context 'this is where looping is defined' do 
-
-        it 'should yield control to a manager' do 
-
-          pending %q{
-notes:
-
-# fetch 200 tweets from user @ev's timeline 
-# =>  @tclient.user_timeline('ev', count: 200)
-@manager.fetch(:user_timeline, count: 200)
-
-
-# fetch 600 tweets from user @ev's timeline 
-@manager.fetch(:user_timeline, count: 200) do |manager, response, state_of_fetch|
-
-   TBD:::
-  state_of_fetch.repeat ??
-  response.on_success do |body|
-    state = body.max_id
-    @manager.fetch(:user_timeline, )
-  end
-
-end
-
-
-
-          }
-        end
-
-      end
+    it 'should allow the addition of a single client' do 
+      @manager.add_clients({name: 'hey', id: 'you', desc: 'guys'})
+      expect(@manager.client_count).to eq 1
     end
 
-
-
+    it 'should allow the addition of several clients' do 
+      @manager.add_clients([1,2,3])
+      expect(@manager.client_count).to eq 3
+    end
   end
 
+  context 'wrap in managed clients' do 
+    before(:each) do 
+      @client = double()
+      @client.stub(:inspect){ 'inspected' }
 
-
-
-  describe '#find_client_from_pool' do 
-
-    it 'should return one of its managed clients'
-
-
-  end
-
-
-
-  context 'pool management' do 
-
-  end
-
-  context 'batch calls' do 
-
-    it 'should quit after lambda condition is reached'
-    it 'should allow specification of one single client'
-
-    context 'rate limit denials' do 
-      it 'should punt to next client'
+      @manager.add_clients(@client)
     end
 
-  end
-
-  # even singular calls should have rate limiting
-  #
-  # when a singular call fails, manager has number of retries
-  context 'singular calls' do 
-
+    it 'should wrap each client in ManagedClient' do 
+      expect(@manager.find_client).to be_a ManagedClient
+    end
   end
 
 

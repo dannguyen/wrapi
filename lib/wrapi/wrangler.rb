@@ -24,9 +24,11 @@ module Wrapi
         handled_errors[err_klass] = Hashie::Mash.new(handling: blk)
       end
 
+
       def handle_rate_limited_error
 
       end
+
 
       def handled_errors
         self.list_of_handled_errors ||= Hashie::Mash.new

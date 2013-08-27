@@ -20,6 +20,16 @@ describe "Wrapi::Manager" do
       @manager.add_clients([1,2,3])
       expect(@manager.client_count).to eq 3
     end
+
+    it 'should remove clients' do 
+      @manager.add_clients(['a', 'b'])
+      expect(@manager.remove_client 'a').to be_true
+      expect(@manager.remove_client 'b').to be_true
+      expect(@manager.remove_client 'b').to be_false
+
+      expect(@manager.has_clients?).to be_false
+    end
+
   end
 
   context 'wrap in managed clients' do 

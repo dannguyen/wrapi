@@ -38,6 +38,13 @@ module Wrapi
       @_pool.first
     end
 
+    # returns true or false
+    def remove_client(client)
+      success = @_pool.delete client 
+
+      return !!success 
+    end
+
 
   end
 end

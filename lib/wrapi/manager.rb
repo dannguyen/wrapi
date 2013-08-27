@@ -4,7 +4,9 @@ require_relative 'managed_client'
 
 module Wrapi
   class Manager
+    extend Forwardable
 
+    def_delegators :@pool, :find_client, :remove_client
 
     def initialize
       @pool = ClientPool.new
@@ -24,10 +26,10 @@ module Wrapi
       @pool.size
     end
 
-    def find_client
-      @pool.find_client 
+    def has_clients?
+      client_count > 0
     end
-
+   
     def fetch(client_foo, opts={})
       
       raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)

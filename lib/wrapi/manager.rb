@@ -25,11 +25,47 @@ module Wrapi
     end
 
     def find_client
-      @pool.clients.first
+      @pool.find_client 
     end
 
     def fetch(client_foo, opts={})
+      
+      raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
 
+      options = Hashie::Mash.new(opts)
+
+      # Setup client and loop_state
+      client = find_client
+      loop_state = Hashie::Mash.new({iterations: 0})
+
+      # Options parsing
+      ################# :arguments
+      arguments = opts[:arguments] || []
+      # verify :arguments is an array
+      raise ArgumentError, ":arguments needs to be an array, not a #{arguments.class}" unless arguments.is_a?(Array)
+
+
+      ################# :while_condition
+      ##
+      #  by default, the while condition sees if loop_state is < 1, i.e. executes exactly once
+      while_condition = opts[:while_condition] || ->(loop_state, args){ loop_state.iterations < 1 }
+      raise ArgumentError, ":while_condition needs to respond to :call" unless while_condition.respond_to?(:call)
+
+
+
+      # send the symbol directly to the client, with arguments
+      if client_foo.kind_of?(String) || client_foo.kind_of?(Symbol)
+        client_lambda = ->(*args){ client.send client_foo, *args }
+      end
+
+
+      while( while_condition.call(loop_state, arguments ) )
+
+        client_lambda.call(*arguments) 
+
+        ## now alter loop state 
+        loop_state.iterations += 1
+      end
 
     end
 

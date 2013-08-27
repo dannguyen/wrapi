@@ -52,32 +52,83 @@ module Wrapi
       raise ArgumentError, ":while_condition needs to respond to :call" unless while_condition.respond_to?(:call)
 
 
+      ################# :response_callback
+      # must be a lambda with arity of 2
+      # args are: loop_state and :arguments
+      response_callback = opts[:response_callback] || ->(loop_state, args){  }
+      raise ArgumentError, ":response_callback needs to be a Proc with arity == 2" unless response_callback.respond_to?(:call) && response_callback.arity == 2 
 
-      # send the symbol directly to the client, with arguments
+
+
+      # Now onto the actual execution !!
+      #
+      ###### send the symbol directly to the client, with arguments
       if client_foo.kind_of?(String) || client_foo.kind_of?(Symbol)
         client_lambda = ->(*args){ client.send client_foo, *args }
       end
 
+      # this is returned as an array of responses if no block is given
+      # if a block is given, then this array will be empty
+      # This prevents the method from collecting a massive amount of response data that
+      # has already been acted upon by a block
+      array_of_bodies = []
 
+      # finally, the while loop
       while( while_condition.call(loop_state, arguments ) )
+        begin 
+          resp_body = client_lambda.call(*arguments) 
+        rescue StandardError => err 
+          response_object = FetchedResponse.error(err)
+        else
+          response_object = FetchedResponse.success(resp_body)
+        end
 
-        client_lambda.call(*arguments) 
+
+        ################# block_given?
+        if block_given?
+          ### yield the response_object (FetchedResponse) to the block
+          yield response_object 
+        else 
+          array_of_bodies << response_object 
+        end 
+
 
         ## now alter loop state 
         loop_state.iterations += 1
-      end
+        loop_state.latest_response = response_object
+        loop_state[:latest_response?] = !(response_object.body.nil? && response_body.body.empty?)
+        ##
 
+        # hook for wrangler
+        response_callback.call(loop_state, arguments)
+      end # end of while loop
+
+      return array_of_bodies # this is empty if block was given
     end
 
 
-    # same as fetch, but enforces the existence of response_callback and while
+    # same as fetch, but enforces the existence of while_condition
     def fetch_batch(client_foo, opts)
 
+      options = Hashie::Mash.new(opts)
+      raise ArgumentError, "Batch operations expect a while condition" unless options[:while_condition]
 
+      fetch(client_foo, opts)
     end
 
 
+    # same as fetch, but unwraps the usual returned array of FetchedResponses
+    # and returns only the body of the first element
+    # Obviously, you're expecting only a single call and response here
+    # e.g. fetch_single_tweet(id: 10101099 )
+    #
+    # raises error if block is given
+    def fetch_single(client_foo, opts={})
+      raise ArgumentError, "Block is not expected for singular call" if block_given?
+      arr = fetch(client_foo, opts)
 
+      return arr.first.body
+    end
 
 
   end

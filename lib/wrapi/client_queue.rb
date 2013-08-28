@@ -1,9 +1,9 @@
 module Wrapi
-  class ClientPool
+  class ClientQueue
 
-    def initialize(clientpool=nil)            
-      @_pool = []      
-      add_clients( clientpool ) unless clientpool.nil?
+    def initialize(clientqueue=nil)            
+      @_queue = []      
+      add_clients( clientqueue ) unless clientqueue.nil?
     end
 
     def add_clients(arr)
@@ -16,31 +16,31 @@ module Wrapi
 
     def add_client(ct)
       raise ArgumentError, "Only ManagedClients can be added, not #{ct.class}" unless ct.is_a?( ManagedClient ) 
-      @_pool << ct 
+      @_queue << ct 
 
       nil
     end
 
 
     def clients
-      @_pool
+      @_queue
     end
 
     def empty?
-      @_pool.empty?
+      @_queue.empty?
     end
 
     def size
-      @_pool.count
+      @_queue.count
     end
 
     def find_client
-      @_pool.first
+      @_queue.first
     end
 
     # returns true or false
     def remove_client(client)
-      success = @_pool.delete client 
+      success = @_queue.delete client 
 
       return !!success 
     end

@@ -6,8 +6,8 @@ describe "Wrapi::Manager" do
     @manager = Manager.new    
   end
 
-  context 'pool interface' do 
-    it 'should have a pool with initially 0 clients' do 
+  context 'queue interface' do 
+    it 'should have a queue with initially 0 clients' do 
       expect(@manager.client_count).to eq 0
     end
 

@@ -1,4 +1,4 @@
-require_relative 'client_pool'
+require_relative 'client_queue'
 require_relative 'managed_client'
 
 
@@ -6,30 +6,34 @@ module Wrapi
   class Manager
     extend Forwardable
 
-    def_delegators :@pool, :find_client, :remove_client
+    def_delegators :@queue, :find_client, :remove_client
 
     def initialize
-      @pool = ClientPool.new
+      @queue = ClientQueue.new
     end
 
     def add_clients(arr)
       array = arr.is_a?(Hash) ? [arr] : Array(arr) 
 
       array.each do |client|
-        @pool.add_client ManagedClient.new( client ) 
+        @queue.add_client ManagedClient.new( client ) 
       end
       
       nil
     end
 
     def client_count
-      @pool.size
+      @queue.size
     end
 
     def has_clients?
       client_count > 0
     end
    
+    def shuffle_clients
+      @queue.shuffle!
+    end
+
     def fetch(client_foo, opts={})
       
       raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
@@ -77,33 +81,33 @@ module Wrapi
 
       # finally, the while loop
       while( while_condition.call(loop_state, arguments ) )
+
         begin 
           resp_body = client_lambda.call(*arguments) 
         rescue StandardError => err 
           response_object = FetchedResponse.error(err)
+
         else
           response_object = FetchedResponse.success(resp_body)
-        end
+              ################# block_given?
+            if block_given?
+              ### yield the response_object (FetchedResponse) to the block
+              yield response_object 
+            else 
+              array_of_bodies << response_object 
+            end 
 
 
-        ################# block_given?
-        if block_given?
-          ### yield the response_object (FetchedResponse) to the block
-          yield response_object 
-        else 
-          array_of_bodies << response_object 
-        end 
+            ## now alter loop state 
+            loop_state.iterations += 1
+            loop_state.latest_response = response_object
+            loop_state[:latest_response?] = !(response_object.body.nil? && response_body.body.empty?)
+            ##
 
-
-        ## now alter loop state 
-        loop_state.iterations += 1
-        loop_state.latest_response = response_object
-        loop_state[:latest_response?] = !(response_object.body.nil? && response_body.body.empty?)
-        ##
-
-        # hook for wrangler
-        response_callback.call(loop_state, arguments)
-      end # end of while loop
+            # hook for wrangler
+            response_callback.call(loop_state, arguments)
+          end 
+        end# end of while loop
 
       return array_of_bodies # this is empty if block was given
     end

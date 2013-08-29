@@ -8,6 +8,11 @@ group :development do
   gem "rdoc", "~> 3.12"
 end
 
+group :test do 
+  gem 'twitter'
+  gem 'oj'
+end
+
 gem 'hashie'
 gem 'andand'
 gem 'activesupport', '~> 3.2.14'

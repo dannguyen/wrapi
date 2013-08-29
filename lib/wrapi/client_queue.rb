@@ -22,6 +22,10 @@ module Wrapi
     end
 
 
+    def bare_clients
+      clients.map{|c| c.bare_client}
+    end
+
     def clients
       @_queue
     end

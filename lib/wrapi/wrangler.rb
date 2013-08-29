@@ -8,10 +8,28 @@ module Wrapi
     included do 
       class_attribute :list_of_handled_errors
       attr_reader :credentials
+
+      extend Forwardable
+
+      # hello bi-directional knowledge!
+      def_delegators :@manager, :has_clients?, :bare_clients, :clients
     end
 
 
+    def initialize
+      @manager = Manager.new
+    end
+
     module ClassMethods
+
+      def init_clients(*args)
+        w = self.new 
+        w.load_credentials_and_initialize_clients(*args)
+
+        return w
+      end
+
+
       def handle_error(err_klass, &blk)
         unless err_klass < Exception
           raise ArgumentError, "Please pass in an Exception/Error class, not a #{err_klass}"
@@ -33,25 +51,37 @@ module Wrapi
       def handled_errors
         self.list_of_handled_errors ||= Hashie::Mash.new
       end
+    end
 
 
+    # cred_thingies is what 
+    # the user-specified load_credentials wants 
+    
+    def load_credentials_and_initialize_clients(*cred_thingies)
+      @credentials = parse_credentials load_credentials(*cred_thingies)      
 
-      def parse_credentials(*args)
-        # Abstract
+      @credentials.each do |cred|
+        client = initialize_client(cred)
+        @manager.add_clients(client)
       end
 
-      def load_credentials(*args)
-        # Abstract
-      end
-
-      def initialize_client(credential_unit)
-        
-      end
+      true 
+    end
 
 
-      def credentialize
-        @credentials = parse_credentials load_credentials
-      end
+
+
+    def parse_credentials(*args)
+      # Abstract
+      return []
+    end
+
+    def load_credentials(*args)
+      # Abstract 
+    end
+
+    def initialize_client(credential_unit)
+      
     end
 
   end

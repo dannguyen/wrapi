@@ -5,8 +5,7 @@ require_relative 'managed_client'
 module Wrapi
   class Manager
     extend Forwardable
-
-    def_delegators :@queue, :find_client, :remove_client
+    def_delegators :@queue, :find_client, :remove_client, :bare_clients, :clients
 
     def initialize
       @queue = ClientQueue.new

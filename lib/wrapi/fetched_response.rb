@@ -36,5 +36,10 @@ module Wrapi
       yield @body if success?
     end
 
+    # remove the body
+    def trim_body!
+      @body = []
+    end
+
   end
 end

@@ -33,7 +33,7 @@ module Wrapi
       @queue.shuffle!
     end
 
-    def fetch(client_foo, opts={})
+    def fetch(client_foo, opts={}, &callback_on_response_object)
       
       raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
 
@@ -67,9 +67,17 @@ module Wrapi
 
       # Now onto the actual execution !!
       #
-      ###### send the symbol directly to the client, with arguments
+      ## We wrap it into #client_lambda, which will get executed in the loop
       if client_foo.kind_of?(String) || client_foo.kind_of?(Symbol)
-        client_lambda = ->(*args){ client.send client_foo, *args }
+        ###### send the symbol directly to the client, with arguments
+        client_lambda = ->(args){ 
+          # debug stuff
+#          puts "client: #{client}"
+#          puts "\texecuting: #{client_foo}"
+#          puts "\twith args: #{args}\n\n"
+
+          client.send client_foo, *args 
+        }
       end
 
       # this is returned as an array of responses if no block is given
@@ -82,20 +90,23 @@ module Wrapi
       while( while_condition.call(loop_state, arguments ) )
 
         begin 
-          resp_body = client_lambda.call(*arguments) 
+          resp_body = client_lambda.call(arguments) 
         rescue StandardError => err 
           response_object = FetchedResponse.error(err)
-
+          if callback_on_response_object
+            yield response_object 
+          else
+            raise err 
+          end
         else
           response_object = FetchedResponse.success(resp_body)
               ################# block_given?
-            if block_given?
+            if callback_on_response_object
               ### yield the response_object (FetchedResponse) to the block
               yield response_object 
             else 
               array_of_bodies << response_object 
             end 
-
 
             ## now alter loop state 
             loop_state.iterations += 1
@@ -113,12 +124,12 @@ module Wrapi
 
 
     # same as fetch, but enforces the existence of while_condition
-    def fetch_batch(client_foo, opts)
+    def fetch_batch(client_foo, opts, &blk)
 
       options = Hashie::Mash.new(opts)
       raise ArgumentError, "Batch operations expect a while condition" unless options[:while_condition]
 
-      fetch(client_foo, opts)
+      fetch(client_foo, opts, &blk)
     end
 
 

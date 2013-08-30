@@ -6,5 +6,5 @@ module Wrapi
 end
 
 include Wrapi
-require 'wrapi/wrangler'
-require 'wrapi/fetched_response'
+require_relative 'wrapi/wrangler'
+require_relative 'wrapi/fetched_response'

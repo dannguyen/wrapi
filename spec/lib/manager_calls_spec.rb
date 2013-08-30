@@ -118,13 +118,17 @@ describe 'Wrapi::Manager' do
           end
 
           it 'must return an empty array' do 
-            expect(@manager.fetch(:call_the_api){  }).to be_empty
+            results = @manager.fetch(:call_the_api){ |b| }
+            expect(results).to be_empty
+            expect(results).to be_an(Array) 
           end
         end
       
         context 'does not exist' do 
           it 'returns an array of responses' do 
-            expect(@manager.fetch(:call_the_api) ).to be_an Array
+            results = @manager.fetch(:call_the_api)
+            expect(results ).to be_an Array
+            expect(results).not_to be_empty
           end
 
           it 'contains FetchedResponse objects' do 

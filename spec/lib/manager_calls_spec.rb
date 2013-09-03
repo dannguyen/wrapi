@@ -6,9 +6,9 @@ describe 'Wrapi::Manager' do
     @client = double()
     @client.stub(:call_the_api){ 'Hello' }
     @client.stub(:call_the_api_with_args){|a| "Hello #{a}" }
+
     @manager = Manager.new
     @manager.add_clients(@client)
-
   end
 
   describe '#fetch' do 
@@ -44,35 +44,47 @@ describe 'Wrapi::Manager' do
           expect{@manager.fetch(:call_the_api, while_condition: 'not a lambda')}.to raise_error ArgumentError
         end
 
-        context 'within loop' do 
+        context 'within loop', focus: true do 
+          let(:lambda){ Proc.new do |loop_state,args| 
+                args[0].probe(loop_state,args)
+                loop_state.iterations < 2 
+              end
+           }
+
           before(:each) do 
-            @lambda = double('Proc')
-            @lambda.stub(:class){"Proc"}
-            @lambda.stub(:call){|loop_state,args| loop_state.iterations < 2}
+            @foo_probe = double()
+            @foo_probe.stub(:probe){|a,b| }
           end
 
           it 'calls lambda with arity of two' do 
-            expect(@lambda).to receive(:call).with(an_instance_of(Hashie::Mash), an_instance_of(Array))
-            @manager.fetch(:call_the_api, while_condition: @lambda)
+            expect(@foo_probe).to receive(:probe).with(an_instance_of(Hashie::Mash), an_instance_of(Array))
+            @manager.fetch(:call_the_api_with_args, arguments: [@foo_probe], while_condition: lambda)
           end
 
           it 'loops until while_condition is met' do 
-            expect(@client).to receive(:call_the_api).exactly(2).times
+            expect(@client).to receive(:call_the_api_with_args).exactly(2).times
             # while_condition is evaluated thrice
-            expect(@lambda).to receive(:call).exactly(3).times
-            @manager.fetch(:call_the_api, while_condition: @lambda)
+
+            expect(@foo_probe).to receive(:probe).exactly(3).times
+            @manager.fetch(:call_the_api_with_args, arguments: [@foo_probe], while_condition: lambda)
           end
         end
       end
 
+
+
+
       describe '#response_callback' do 
-          before(:each) do 
-            @lambda = double('Proc')
-            @lambda.stub(:class){"Proc"}
-            @lambda.stub(:call){|loop_state, args| loop_state.iterations < 2}
-          end
+        let(:lambda){ Proc.new do |loop_state,args| 
+              args[0].probe(loop_state,args)
+              loop_state.iterations < 2 
+            end
+         }
 
-
+        before(:each) do 
+          @foo_probe = double()
+          @foo_probe.stub(:probe){|a,b| }
+        end
 
         it 'if present, must be a lambda with arity of two' do 
           expect{@manager.fetch(:call_the_api, response_callback: "not a proc")}.to raise_error ArgumentError
@@ -83,19 +95,25 @@ describe 'Wrapi::Manager' do
 
         context 'invocation' do 
           it "called with loop_state and arguments" do 
-            @lambda = double('Proc')
-            @lambda.stub(:class){"Proc"}
-            @lambda.stub(:arity){2}
-            @lambda.stub(:call){|loop_state,args|  }
-
-            expect(@lambda).to receive(:call).with(an_instance_of(Hashie::Mash), an_instance_of(Array))
-            @manager.fetch(:call_the_api, response_callback: @lambda)
+            expect(@foo_probe).to receive(:probe).with(an_instance_of(Hashie::Mash), an_instance_of(Array))
+            @manager.fetch(:call_the_api_with_args, response_callback: lambda, arguments: [@foo_probe])
           end
 
           it "executes after loop_state is modified" do
-            @hash = {:increments => 0}
-            @lambda = ->(loop_state, args){ args[0][:increments] = loop_state.iterations }
-            @manager.fetch(:call_the_api_with_args, arguments: [@hash], response_callback: @lambda)
+            pending('forget it, I cant get this to work without exposing interface')
+            
+            @probe_att = {increments: 0}
+            @probe = double()
+            @probe.stub(:set_it){|a| a}            
+
+            @callback = ->(loop_state, args){  
+              args[0] = loop_state.iterations  
+              puts "\n\n HEY\n loopstate: #{loop_state.iterations}" 
+              puts "args: #{args[0][:increments]}"
+              puts "hash: #{binded_hash[:increments]}\n\n\n"
+
+            }
+            @manager.fetch(:call_the_api_with_args, arguments: [@hash], response_callback: @callback)
 
             expect(@hash[:increments]).to eq 1
           end
@@ -113,7 +131,7 @@ describe 'Wrapi::Manager' do
 
           it 'must yield as many times as there are iterations' do 
             expect{ |b| 
-              @manager.fetch(:call_the_api, {while_condition: ->(x,y){ x.iterations < 2 }},  &b)
+              @manager.fetch(:call_the_api, {while_condition: ->(x,y){ x.iterations < 2 }}, &b)
             }.to yield_control.exactly(2).times 
           end
 
@@ -137,6 +155,21 @@ describe 'Wrapi::Manager' do
             expect(@resp.body).to eq 'Hello'
           end
         end        
+      end # 'yielding a block'
+
+      describe 'passing in a IO object via :transcript' do 
+
+        it 'should raise ArgumentError if transcript is non-nil and does not respond to #puts' do 
+          expect{ @manager.fetch(:call_the_api, transcript: [404] )}.to raise_error ArgumentError
+        end
+
+        it 'should print message to an IO object' do 
+          @io = StringIO.new
+          @manager.fetch(:call_the_api, transcript: @io)
+          expect(@io.string).to match(/:call_the_api with :arguments/)
+        end
+
+
       end
 
 

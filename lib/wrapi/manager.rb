@@ -1,6 +1,6 @@
 require_relative 'client_queue'
 require_relative 'managed_client'
-
+require_relative 'fetch_process'
 
 module Wrapi
   class Manager
@@ -33,6 +33,44 @@ module Wrapi
       @queue.shuffle!
     end
 
+    def fetch(foo_name, opts={}, &callback_on_response_object)
+      raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
+      
+
+      client = find_client
+
+      fetch_process = FetchProcess.new(client, foo_name, Hashie::Mash.new(opts))
+
+      array_of_bodies = []
+
+      while fetch_process.while_condition? 
+
+        # expecting FetchResponse object
+        fetch_process.execute do |response|
+          response.on_success do
+            if callback_on_response_object
+              yield response
+            else
+              array_of_bodies << response
+            end
+          end
+
+          response.on_error do 
+            if callback_on_response_object
+              yield response 
+            else
+              raise response.error 
+            end
+          end
+        end
+      end# end of while loop
+
+      return array_of_bodies # this is empty if block was given
+    end
+
+
+
+=begin
     def fetch(client_foo, opts={}, &callback_on_response_object)
       
       raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
@@ -64,6 +102,12 @@ module Wrapi
       raise ArgumentError, ":response_callback needs to be a Proc with arity == 2" unless response_callback.respond_to?(:call) && response_callback.arity == 2 
 
 
+      ################ :transcript
+      ## this is where you specify IO to write to
+      transcript_io = opts[:transcript]
+      raise ArgumentError, ":transcript must be an IO or nil, not #{transcript_io.class}" unless transcript_io.nil? || transcript_io.respond_to?(:puts)
+
+
 
       # Now onto the actual execution !!
       #
@@ -71,10 +115,9 @@ module Wrapi
       if client_foo.kind_of?(String) || client_foo.kind_of?(Symbol)
         ###### send the symbol directly to the client, with arguments
         client_lambda = ->(args){ 
-          # debug stuff
-#          puts "client: #{client}"
-#          puts "\texecuting: #{client_foo}"
-#          puts "\twith args: #{args}\n\n"
+          unless transcript_io.nil?          
+            transcript_io.puts "sending :#{client_foo} with :arguments => #{args}"
+          end
 
           client.send client_foo, *args 
         }
@@ -111,6 +154,7 @@ module Wrapi
             ## now alter loop state 
             loop_state.iterations += 1
             loop_state.latest_response = response_object
+            loop_state.latest_body = response_object.body 
             loop_state[:latest_response?] = !(response_object.body.nil? && response_body.body.empty?)
             ##
 
@@ -121,11 +165,12 @@ module Wrapi
 
       return array_of_bodies # this is empty if block was given
     end
-
+=end
 
     # same as fetch, but enforces the existence of while_condition
     def fetch_batch(client_foo, opts, &blk)
 
+      # todo: should be handled in FetchProcess.factory
       options = Hashie::Mash.new(opts)
       raise ArgumentError, "Batch operations expect a while condition" unless options[:while_condition]
 
@@ -149,59 +194,3 @@ module Wrapi
 
   end
 end
-
-=begin
-
-manager.fetch_batch do |client|
-  client.send user_timeline
-
-end
-
-def fetch_batch_user_timeline 
-
-  mashie = {}
-  manager.fetch_batch(mashie) do |client, state_mash|
-    resp = client.user_timeline user_name, mashie
-    
-    mashie = #
-
-  end
-
-end
-
-
-fetch( 
-  :user_timeline, 
-
-  arguments: ['dancow', {count: 200, include_rts: true, trim_user: true, since_id: 1, max_id: 999} ], 
-
-  response_callback: ->(response_body, args){
-    mash = args[1]
-    mash[:max_id] = response_body.last.andand.id.to_i - 1
-  },
-
-  while_condition: ->(loop_state, args){ 
-    mash = args[1]   
-
-    mash.max_id > mash.since_id
-  },
-
-  yield_to: blk
-
-)
-
-
-
-fetch(
-  :get_connections,
-  :arguments => [facebook_id, :feed, facebook_opts],
-  :do_while => true,  # or something?
-
-  :response_callback: ->(response_body, args){
-    response_body = response_body.next_page
-  }, 
-  :while_condition => ->(loop_state, args){
-    loop_state.last_response.present?
-  }, 
-)
-=end

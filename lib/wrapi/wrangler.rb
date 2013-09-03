@@ -12,7 +12,7 @@ module Wrapi
       extend Forwardable
 
       # hello bi-directional knowledge!
-      def_delegators :@manager, :has_clients?, :bare_clients, :clients
+      def_delegators :@manager, :has_clients?, :bare_clients, :clients, :fetch_single, :fetch_batch, :fetch
     end
 
 

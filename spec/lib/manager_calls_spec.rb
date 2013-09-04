@@ -45,9 +45,9 @@ describe 'Wrapi::Manager' do
         end
 
         context 'within loop', focus: true do 
-          let(:lambda){ Proc.new do |loop_state,args| 
-                args[0].probe(loop_state,args)
-                loop_state.iterations < 2 
+          let(:lambda){ Proc.new do |fetch_process,args| 
+                args[0].probe(fetch_process,args)
+                fetch_process.iterations < 2 
               end
            }
 
@@ -57,7 +57,7 @@ describe 'Wrapi::Manager' do
           end
 
           it 'calls lambda with arity of two' do 
-            expect(@foo_probe).to receive(:probe).with(an_instance_of(Hashie::Mash), an_instance_of(Array))
+            expect(@foo_probe).to receive(:probe).with(an_instance_of(FetchProcess), an_instance_of(Array))
             @manager.fetch(:call_the_api_with_args, arguments: [@foo_probe], while_condition: lambda)
           end
 
@@ -75,9 +75,9 @@ describe 'Wrapi::Manager' do
 
 
       describe '#response_callback' do 
-        let(:lambda){ Proc.new do |loop_state,args| 
-              args[0].probe(loop_state,args)
-              loop_state.iterations < 2 
+        let(:lambda){ Proc.new do |fetch_process,args| 
+              args[0].probe(fetch_process,args)
+              fetch_process.iterations < 2 
             end
          }
 
@@ -94,21 +94,21 @@ describe 'Wrapi::Manager' do
         
 
         context 'invocation' do 
-          it "called with loop_state and arguments" do 
-            expect(@foo_probe).to receive(:probe).with(an_instance_of(Hashie::Mash), an_instance_of(Array))
+          it "called with fetch_process and arguments" do 
+            expect(@foo_probe).to receive(:probe).with(an_instance_of(FetchProcess), an_instance_of(Array))
             @manager.fetch(:call_the_api_with_args, response_callback: lambda, arguments: [@foo_probe])
           end
 
-          it "executes after loop_state is modified" do
+          it "executes after fetch_process is modified" do
             pending('forget it, I cant get this to work without exposing interface')
-            
+
             @probe_att = {increments: 0}
             @probe = double()
             @probe.stub(:set_it){|a| a}            
 
-            @callback = ->(loop_state, args){  
-              args[0] = loop_state.iterations  
-              puts "\n\n HEY\n loopstate: #{loop_state.iterations}" 
+            @callback = ->(fetch_process, args){  
+              args[0] = fetch_process.iterations  
+              puts "\n\n HEY\n fetch_process: #{fetch_process.iterations}" 
               puts "args: #{args[0][:increments]}"
               puts "hash: #{binded_hash[:increments]}\n\n\n"
 

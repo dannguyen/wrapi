@@ -5,7 +5,7 @@ module Wrapi
   class FetchProcess
 
 
-    attr_reader :mode, :managed_client, :arguments, :process_name
+    attr_reader :mode, :arguments, :process_name
     attr_reader :latest_response, :iterations
 
     def initialize(client_instance, process_name, opts)
@@ -13,7 +13,6 @@ module Wrapi
       @process_name = process_name
       @iterations = 0
       @options = Hashie::Mash.new(opts)
-
 
       @arguments = @options[:arguments] || []
       raise ArgumentError, ":arguments needs to be an array, not a #{@arguments.class}" unless @arguments.is_a?(Array)
@@ -32,8 +31,15 @@ module Wrapi
       define_singleton_method_by_proc(:response_callback, _response_callback )
     end
 
+    # Public: convenient alias for @managed_client
     def client
       @managed_client
+    end
+
+
+    # Public: Allows the calling manager to replace the client
+    def set_client(a_client_instance)
+      @managed_client = a_client_instance
     end
 
     # runs @managed_client.perform
@@ -95,21 +101,24 @@ module Wrapi
 
     private
 
+    # Internal: Perform the specified client operation
     def perform_client_operation
       @managed_client.send( process_name, *arguments )
     end
 
+    # Internal: A poorly named method that obfuscates that this is the Proc passed in to 
+    # work with the process and modify the arguments after each successful call
     def perform_response_callback
       response_callback(self, @arguments)
     end
 
-
+    # Internal: A convenience method for turning the :while_condition proc to a singleton instance method
     def define_singleton_method_by_proc(foo_name, block)
       metaclass = class << self; self; end
       metaclass.send(:define_method, foo_name, block)
     end
 
-    # code smell TODO: dependency on @latest_response
+    # Internal: to be deprecated soon, but called during #proceed!
     def increment_loop_state!
       @iterations += 1
     end
@@ -123,7 +132,7 @@ module Wrapi
 
   class BatchFetchProcess < FetchProcess 
     def initialize(client_instance, process_name, opts)
-      super(client_instance, opts)
+      super(client_instance, process_name, opts)
 
       raise ArgumentError, "Batch operations expect a while condition" unless @options[:while_condition]      
     end

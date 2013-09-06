@@ -29,17 +29,21 @@ module Wrapi
       client_count > 0
     end
    
+    # Public: not used
     def shuffle_clients
       @queue.shuffle!
     end
 
-    def fetch(foo_name, opts={}, &callback_on_response_object)
+    def fetch(foo_name, opts={}, fetch_mode=:single, &callback_on_response_object)
       raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
-      
-
       client = find_client
 
-      fetch_process = FetchProcess.new(client, foo_name, Hashie::Mash.new(opts))
+      fetch_process = case fetch_mode.to_s
+      when /batch/
+         BatchFetchProcess.new(client, foo_name, Hashie::Mash.new(opts))
+      else
+         SingularFetchProcess.new(client, foo_name, Hashie::Mash.new(opts))
+      end
 
       array_of_bodies = []
 
@@ -76,12 +80,7 @@ module Wrapi
 
     # same as fetch, but enforces the existence of while_condition
     def fetch_batch(client_foo, opts, &blk)
-
-      # todo: should be handled in FetchProcess.factory
-      options = Hashie::Mash.new(opts)
-      raise ArgumentError, "Batch operations expect a while condition" unless options[:while_condition]
-
-      fetch(client_foo, opts, &blk)
+      fetch(client_foo, opts, :batch, &blk)
     end
 
 
@@ -93,8 +92,9 @@ module Wrapi
     # raises error if block is given
     def fetch_single(client_foo, opts={})
       raise ArgumentError, "Block is not expected for singular call" if block_given?
-      arr = fetch(client_foo, opts)
+      arr = fetch(client_foo, opts, :single)
 
+      # TODO: Shouldn't this be handled in SingularFetchProcess?
       return arr.first.body
     end
 

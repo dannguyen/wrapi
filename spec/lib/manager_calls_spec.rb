@@ -57,7 +57,7 @@ describe 'Wrapi::Manager' do
           end
 
           it 'calls lambda with arity of two' do 
-            expect(@foo_probe).to receive(:probe).with(an_instance_of(FetchProcess), an_instance_of(Array))
+            expect(@foo_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
             @manager.fetch(:call_the_api_with_args, arguments: [@foo_probe], while_condition: lambda)
           end
 
@@ -95,7 +95,7 @@ describe 'Wrapi::Manager' do
 
         context 'invocation' do 
           it "called with fetch_process and arguments" do 
-            expect(@foo_probe).to receive(:probe).with(an_instance_of(FetchProcess), an_instance_of(Array))
+            expect(@foo_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
             @manager.fetch(:call_the_api_with_args, response_callback: lambda, arguments: [@foo_probe])
           end
 

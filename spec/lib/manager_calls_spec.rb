@@ -44,7 +44,7 @@ describe 'Wrapi::Manager' do
           expect{@manager.fetch(:call_the_api, while_condition: 'not a lambda')}.to raise_error ArgumentError
         end
 
-        context 'within loop', focus: true do 
+        context 'within loop', true do 
           let(:lambda){ Proc.new do |fetch_process,args| 
                 args[0].probe(fetch_process,args)
                 fetch_process.iterations < 2 

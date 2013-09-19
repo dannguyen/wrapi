@@ -5,52 +5,55 @@ require 'andand'
 
 require_relative '../lib/wrapi'
 
-## example usage
-=begin
-require './examples/twitter_wrangler'
-t = TwitterWrangler.init_clients
-
-tweets = []
-t.fetch_batch_user_timeline( 'dancow' ) do |resp|
-  resp.on_success do |body|
-    tweets += body
-  end
-end
-
-
-follower_ids = []
-t.fetch_batch_follower_ids( 'dancow' ) do |resp|
-  resp.on_success do |body|
-    follower_ids += body.collection
-  end
-end
-
-
-users = []
-t.fetch_batch_users(['dancow', 'skift', 'rafat'], 2, {}) do |resp|
-  resp.on_success do |body|
-    users += body 
-  end
-end
-
-=end
-
 
 class TwitterWrangler
   include Wrapi::Wrangler
-
-
 
   # Public: Maximum Twitter ID (as of 2013)...any bigger and Twitter API will reject it as invalid
   
   # Examples:
   #
-  #   MAX_TWEET_ID is:                    9000000000000000000
+  #   MAX_TWEET_ID is:                    9223372036854775807
   #   id of current tweet from firehose:  380000000000000000
-  MAX_TWEET_ID = (10**18) * 9
+  MAX_TWEET_ID = (2**63) - 1
  
   # Public: Twitter API allows for 100 user profiles to be retrieved at a time
   MAX_SIZE_OF_USERS_BATCH = 100
+
+
+
+
+#################################
+#### Initialization stuff
+
+  # return an instantiated client
+  def initialize_client(cred)
+    Twitter::Client.new(cred)
+  end
+
+  # map loaded_creds into an array
+  def parse_credentials(loaded_creds)
+    arr = []
+    loaded_creds.each do |creds|
+      app_hash = creds.dup.keep_if{|k,v| ['consumer_key', 'consumer_secret'].include?(k)}
+
+      arr += creds['tokens'].map{ |token|  token.merge(app_hash).symbolize_keys }
+    end
+
+    return arr
+  end
+
+  # in this case, the object is an array of objects, each of which contains an array of :tokens
+  def load_credentials()
+    JSON.parse open( File.expand_path('../twitter-creds.json', __FILE__) ){|f| f.read}
+  end
+
+  
+
+end
+
+
+
 
 ################# SINGLE OPERATIONS
 
@@ -242,34 +245,6 @@ class TwitterWrangler
 
 
 
-#################################
-#### Initialization stuff
-
-  # return an instantiated client
-  def initialize_client(cred)
-    Twitter::Client.new(cred)
-  end
-
-  # map loaded_creds into an array
-  def parse_credentials(loaded_creds)
-    arr = []
-    loaded_creds.each do |creds|
-      app_hash = creds.dup.keep_if{|k,v| ['consumer_key', 'consumer_secret'].include?(k)}
-
-      arr += creds['tokens'].map{ |token|  token.merge(app_hash).symbolize_keys }
-    end
-
-    return arr
-  end
-
-  # in this case, the object is an array of objects, each of which contains an array of :tokens
-  def load_credentials()
-    JSON.parse open( File.expand_path('../twitter-creds.json', __FILE__) ){|f| f.read}
-  end
-end
-
-
-
 =begin
   define_rate_errors(Twitter::RateLimit, Twitter::Something) do |manager, error|
 
@@ -280,4 +255,38 @@ end
   end
 
 =end
+
+
+
+
+## example usage
+=begin
+require './examples/twitter_wrangler'
+t = TwitterWrangler.init_clients
+
+tweets = []
+t.fetch_batch_user_timeline( 'dancow' ) do |resp|
+  resp.on_success do |body|
+    tweets += body
+  end
+end
+
+
+follower_ids = []
+t.fetch_batch_follower_ids( 'dancow' ) do |resp|
+  resp.on_success do |body|
+    follower_ids += body.collection
+  end
+end
+
+
+users = []
+t.fetch_batch_users(['dancow', 'skift', 'rafat'], 2, {}) do |resp|
+  resp.on_success do |body|
+    users += body 
+  end
+end
+
+=end
+
 

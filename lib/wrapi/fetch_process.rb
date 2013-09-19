@@ -26,7 +26,7 @@ module Wrapi
       raise ArgumentError, ":while_condition needs to respond to :call" unless _while_condition.respond_to?(:call)
       define_singleton_method_by_proc(:while_condition, _while_condition )
 
-      _response_callback = opts[:response_callback] || ->(foo_process, args){  }
+      _response_callback = @options[:response_callback] || ->(foo_process, args){  }
       raise ArgumentError, ":response_callback needs to be a Proc with arity == 2" unless _response_callback.respond_to?(:call) && _response_callback.arity == 2 
       define_singleton_method_by_proc(:response_callback, _response_callback )
     end

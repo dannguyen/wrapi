@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'Wrapi::FetchProcess', focus: true do
+describe 'Wrapi::FetchProcess' do
 
   
 
@@ -43,16 +43,16 @@ describe 'Wrapi::FetchProcess', focus: true do
 
   context 'public methods' do 
     before(:each) do 
-      @client = ManagedClient.new({})
-      @foo = :foo
-      @my_arg = []
+      @client = ManagedClient.new('hey')
+      @foo = :sub
+      @my_arg = ['hey', 'Hello']
       @process = FetchProcess.new(
         @client,
         @foo,
         {
-          arguments: [@my_arg],
+          arguments: @my_arg,
           while_condition: ->(f_process, args){ f_process.iterations < 1},
-          response_callback: ->(f_process, args){ args[0] << '!'}
+          response_callback: ->(f_process, args){ args[1] << '!'}
         }
       )
     end
@@ -77,6 +77,84 @@ describe 'Wrapi::FetchProcess', focus: true do
     end
 
 
+    describe '#execute' do 
+      context 'inside block' do 
+        it 'should yield a FetchResponse' do 
+          expect{|b| @process.execute(&b )}.to yield_with_args(FetchedResponse)
+        end
+      end
+
+
+      context 'post execute' do 
+        before(:each) do 
+          @response_array = []
+          @process.execute do |resp|
+            @response_array << resp
+          end
+        end
+      
+        context 'sanity check' do 
+          it 'should be a successful execution' do 
+            expect(@response_array.first.status).to eq :success 
+          end
+        end
+
+
+        context 'does NOT run #proceed!' do 
+          it 'requires that proceed! is executed manually' do 
+            expect(@process.iterations).to eq 0
+          end
+        end
+
+        context 'on while_condition' do 
+          it 'should not #execute again when while_condition? is false' do 
+            @process.proceed! ## for now, we  proceed! manually
+            expect{@process.execute{|r| 'foo'}}.to raise_error ExecutingWhileFalseError
+          end
+        end
+
+
+        describe 'latest_body' do 
+          it 'should return .body of latest_response' do 
+            expect(@process.latest_body).to eq 'Hello'
+          end
+        end
+
+
+        describe '#latesst_response methods' do 
+          before(:each) do 
+            @ap =  FetchProcess.new ManagedClient.new('a'), :upcase
+            @bp  =  FetchProcess.new ManagedClient.new('b'), :not_a_foo
+          end 
+
+          describe 'latest_response?' do 
+            it 'is true if executed at least once' do 
+              @ap.execute{ }
+              expect(@ap.latest_response?).to be_true
+            end
+
+            it 'is false pre execution' do 
+              expect(@ap.latest_response?).to be_false
+            end
+          end
+
+          describe '#latest_response_successful?' do
+            it 'is true if latest_response :success? is true' do 
+              @ap.execute{ }
+              expect(@ap.latest_response_successful?).to be_true
+            end
+
+            it 'is false if latest_response :success? is false' do 
+              @bp.execute{ }
+              expect(@bp.latest_response_successful?).to be_false
+            end
+          end
+
+        end
+      end
+
+
+    end
 
     describe '#proceed!' do
       before(:each) do 
@@ -89,43 +167,28 @@ describe 'Wrapi::FetchProcess', focus: true do
         end
 
         it 'should perform @response_callback' do 
-          expect(@process.arguments.first).to eq ['!']
+          expect(@process.arguments[1]).to eq 'Hello!'
         end
 
-        it 'does not modify original arguments' do 
-          expect(@my_arg).to eq []
+        it 'warning, modifies original arguments' do 
+          expect(@my_arg).to eq ['hey', 'Hello!']
         end
       end
 
 
-      describe '#while_condition?' do 
+      describe '#while_condition? for this particular case' do 
         it 'should change to false upon first call of (this) #proceed!' do 
           expect(@process.while_condition?).to be_false
         end
 
-        it 'should not #proceed! when while_condition? is false' do 
-          expect{@process.proceed!}.to raise_error ProcessingWhileFalseError
-        end
-
-        it 'should allow _proceed! no matter what' do 
+        it 'should allow #proceed! no matter what' do 
           # this is probably a bad idea...
-          @process._proceed!
+          @process.proceed!
           expect(@process.iterations).to eq 2
         end
-
       end
 
-      describe 'latest_body' do 
-        it 'should return .body of latest response' do 
-
-        end
-      end
-
-
-      describe 'latest_response?' do 
-        it 'is true if .body exists'
-        it 'is false if no .body exists'
-      end
+      
 
     end
     

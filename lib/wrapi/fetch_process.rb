@@ -14,6 +14,7 @@ module Wrapi
       @process_name = process_name
       @iterations = 0
       @options = Hashie::Mash.new(opts)
+      @latest_response = nil
 
       @arguments = @options[:arguments] || []
       raise ArgumentError, ":arguments needs to be an array, not a #{@arguments.class}" unless @arguments.is_a?(Array)
@@ -45,7 +46,8 @@ module Wrapi
     end
 
     # runs @managed_client.perform
-    def execute 
+    # this should probably be false
+    def execute!(&blk) 
       transcribe("sending :#{@process_name} with :arguments => #{@arguments}") #todo: refactor
 
       begin 
@@ -62,25 +64,33 @@ module Wrapi
       return nil
     end
 
+    def execute(&blk)
+      if while_condition?
+        execute!(&blk)
+      else
+        raise ExecutingWhileFalseError, "The while_condition evaluates to false"
+      end
+    end
+
     def latest_body
-      @latest_response.body 
+      @latest_response.body if latest_response?
     end
 
     def latest_response?
-      !(latest_body.nil? && latest_body.empty?)
+      !latest_response.nil?
     end
 
+    def latest_response_successful?
+      return false unless latest_response?
+      @latest_response.success?
+    end
 
     # Public: A method invoked by the manager, typically when the response is a success
     # The @iterations is incremented and stores the @latest_response
     # ...careful, proceed! is exposed wherever the fetch_process is yielded.
-    def proceed!
+     def proceed!
       increment_loop_state!
       perform_response_callback
-    end
-
-    def _proceed!
-      proceed!
     end
 
 
@@ -147,7 +157,7 @@ module Wrapi
 
   class ProcessingError < StandardError; end
 
-  class ProcessingWhileFalseError < ProcessingError; end 
+  class ExecutingWhileFalseError < ProcessingError; end 
 
 
 end

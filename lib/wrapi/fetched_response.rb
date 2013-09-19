@@ -2,7 +2,7 @@ require 'hashie'
 module Wrapi
   class FetchedResponse
     
-    attr_reader :body, :error 
+    attr_reader :body, :error, :status 
 
     ## factory methods
     def self.success(body=nil)

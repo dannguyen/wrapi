@@ -8,8 +8,9 @@ module Wrapi
     attr_reader :mode, :arguments, :process_name
     attr_reader :latest_response, :iterations
 
-    def initialize(client_instance, process_name, opts)
-      @managed_client = client_instance
+
+    def initialize(client_instance, process_name, opts={})
+      set_client(client_instance)
       @process_name = process_name
       @iterations = 0
       @options = Hashie::Mash.new(opts)
@@ -39,6 +40,7 @@ module Wrapi
 
     # Public: Allows the calling manager to replace the client
     def set_client(a_client_instance)
+      raise ArgumentError, "first argument needs to be a ManagedClient, not a #{a_client_instance.class}" unless a_client_instance.is_a?(ManagedClient)
       @managed_client = a_client_instance
     end
 
@@ -75,6 +77,10 @@ module Wrapi
     def proceed!
       increment_loop_state!
       perform_response_callback
+    end
+
+    def _proceed!
+      proceed!
     end
 
 
@@ -138,6 +144,10 @@ module Wrapi
     end
   end
 
+
+  class ProcessingError < StandardError; end
+
+  class ProcessingWhileFalseError < ProcessingError; end 
 
 
 end

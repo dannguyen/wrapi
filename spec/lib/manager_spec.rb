@@ -47,5 +47,46 @@ describe "Wrapi::Manager" do
     it 'should care about delegation, I think?'
   end
 
+  context 'client refreshing -- delegated to the process', focus: true do 
+
+    # Not sure where this should be handled, in fetch process or not...
+    describe '#active_client' do 
+      it 'should be the first client that gets sent to a process'
+    end
+
+    describe '#next_client' do 
+      it 'should be nil if no other client' do 
+        expect(@manager.next_client).to be_nil  
+      end
+
+      it 'should accept optional block to do filtering for client' do 
+        @client_a = 'Hey'
+        @client_b = 'You'
+
+        @manager.next_client{|c| c.upcase == 'YOU'}
+        expect().to eq @client_b
+      end
+
+     it 'should not re-select the same client instance' do 
+        @client_a = 'Hey'
+        @client_b = 'You'
+
+        @manager.next_client{|c| c.upcase == 'YOU'}).to eq @client_b
+      end
+
+    end
+  end
+
+  context 'error handling', focus: true do 
+    context 'basic error registering' do 
+      it 'should allow us to register errors by type' do
+        @handler =  ->(x){  true  }
+        @manager.register_error_handler(StandardError, @handler)
+
+        expect(@manager.get_error_handler(StandardError)).to eq @handler
+      end
+    end
+  end
+
 
 end

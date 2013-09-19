@@ -7,8 +7,11 @@ module Wrapi
     extend Forwardable
     def_delegators :@queue, :find_client, :remove_client, :bare_clients, :clients
 
+    attr_reader :error_handlers
+
     def initialize
       @queue = ClientQueue.new
+      @error_handlers = Hash.new
     end
 
     def add_clients(arr)
@@ -47,14 +50,19 @@ module Wrapi
 
       array_of_bodies = []
 
-      while fetch_process.while_condition? 
+      while fetch_process.ready_to_execute? 
         # expecting FetchResponse object
         fetch_process.execute do |response|
 
           response.on_success do
+            # if there was a block passed in by the Wrangler, 
+            # then yield the response to it
             if callback_on_response_object
               yield response
             else
+              # otherwise, stash it into array of bodies
+              # NOTE: this may not actually be supported
+
               array_of_bodies << response
             end
 
@@ -62,13 +70,30 @@ module Wrapi
             fetch_process.proceed!            
           end
 
+          # Error handling
           response.on_error do 
-            #### this is where error handling goes...?
+            
+            # if there was a block, yield it to the Wrangler 
             if callback_on_response_object
               yield response 
             else
               raise response.error 
             end
+
+
+########## if an error handler has been set...
+######## not implemented
+
+            ## note: error_handling_proc MUST return true or false
+            ## or else fetch_process will raise an error
+            if error_handling_proc = get_error_handler(response.error)
+              fetch_process.fix_error do |fp|
+                error_handling_proc.call(fp)
+              end
+            end
+##### /not implemented
+
+
           end
         end
       end# end of while loop
@@ -77,6 +102,13 @@ module Wrapi
     end
 
 
+    def register_error_handler(err_type, proc)
+      @error_handlers[err_type] = proc
+    end
+
+    def get_error_handler(err_type)
+      @error_handlers[err_type]
+    end
 
     # same as fetch, but enforces the existence of while_condition
     def fetch_batch(client_foo, opts, &blk)

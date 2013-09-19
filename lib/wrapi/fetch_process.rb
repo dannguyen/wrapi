@@ -11,6 +11,7 @@ module Wrapi
 
     def initialize(client_instance, process_name, opts={})
       set_client(client_instance)
+      @caught_error = nil
       @process_name = process_name
       @iterations = 0
       @options = Hashie::Mash.new(opts)
@@ -53,6 +54,7 @@ module Wrapi
       begin 
         a_response = perform_client_operation
       rescue StandardError => err
+        set_error(err)
         response_object = FetchedResponse.error(err)
       else
         response_object = FetchedResponse.success(a_response)
@@ -72,32 +74,38 @@ module Wrapi
       end
     end
 
-    def latest_body
-      @latest_response.body if latest_response?
+
+    # allows Manager to manipulate the fetch_process, such as resetting arguments, etc.
+    # and to set a new client
+    #
+    # at the end, the error is cleared
+    def fix_error(&blk)
+      error_handling_result = blk.call( self )
+      
+      ## force user to return true/false here
+      case error_handling_result        
+      when true
+        clear_error!
+      when false
+        # do nothing
+      else
+        raise ImproperErrorHandling, "Error handling method must return true/false, not a #{error_handling_result.class}"
+      end
     end
 
-    def latest_response?
-      !latest_response.nil?
-    end
-
-    def latest_response_successful?
-      return false unless latest_response?
-      @latest_response.success?
-    end
 
     # Public: A method invoked by the manager, typically when the response is a success
     # The @iterations is incremented and stores the @latest_response
     # ...careful, proceed! is exposed wherever the fetch_process is yielded.
-     def proceed!
+    def proceed!
       increment_loop_state!
       perform_response_callback
     end
 
 
-    def while_condition?
-      send(:while_condition, self, @arguments)
-    end
-    
+
+
+
 
     def transcribe(str)
       return if @transcript.nil?
@@ -115,7 +123,51 @@ module Wrapi
     end
 
 
+
+
+#############################################################
+### methods used to test state of the FetchProcess
+
+    def latest_body
+      @latest_response.body if latest_response?
+    end
+
+    def latest_response?
+      !latest_response.nil?
+    end
+
+    def latest_response_successful?
+      return false unless latest_response?
+      @latest_response.success?
+    end
+
+
+    # both the while_condition is true and TODO: errors have been resolved
+    def ready_to_execute?
+      (while_condition? == true) && !(unfixed_error?)
+    end
+
+    def while_condition?
+      send(:while_condition, self, @arguments)
+    end
+    
+
+    def unfixed_error?
+      !@caught_error.nil?
+    end
+
+
+
     private
+
+
+    def clear_error!
+      @caught_error = nil
+    end
+
+    def set_error(err)
+      @caught_error = err
+    end
 
     # Internal: Perform the specified client operation
     def perform_client_operation
@@ -156,7 +208,7 @@ module Wrapi
 
 
   class ProcessingError < StandardError; end
-
+  class ImproperErrorHandling < ProcessingError; end
   class ExecutingWhileFalseError < ProcessingError; end 
 
 

@@ -52,21 +52,25 @@ describe 'Wrapi::Manager' do
            }
 
           before(:each) do 
-            @foo_probe = double()
-            @foo_probe.stub(:probe){|a,b| }
+            @foo_while_probe = double()
+            @foo_while_probe.stub(:probe){|a,b| }
           end
 
-          it 'calls lambda with arity of two' do 
-            expect(@foo_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
-            @manager.fetch(:call_the_api_with_args, arguments: [@foo_probe], while_condition: lambda)
+          it 'calls lambda with arity of two: FetchProcess and an Array' do 
+            expect(@foo_while_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
+            @manager.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
           end
 
           it 'loops until while_condition is met' do 
             expect(@client).to receive(:call_the_api_with_args).exactly(2).times
-            # while_condition is evaluated thrice
+            @manager.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
+          end            
 
-            expect(@foo_probe).to receive(:probe).exactly(3).times
-            @manager.fetch(:call_the_api_with_args, arguments: [@foo_probe], while_condition: lambda)
+          it 'executes while_condition? check more than a few times' do
+            # 3 times in the internal execute check via #ready_to_execute?
+            # 2 times inside fetch_process
+            expect(@foo_while_probe).to receive(:probe).exactly(5).times
+            @manager.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
           end
         end
       end
@@ -76,7 +80,7 @@ describe 'Wrapi::Manager' do
 
       describe '#response_callback' do 
         let(:lambda){ Proc.new do |fetch_process,args| 
-              args[0].probe(fetch_process,args)
+              args[0].probe(fetch_process, args)
               fetch_process.iterations < 2 
             end
          }
@@ -96,6 +100,7 @@ describe 'Wrapi::Manager' do
         context 'invocation' do 
           it "called with fetch_process and arguments" do 
             expect(@foo_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
+            
             @manager.fetch(:call_the_api_with_args, response_callback: lambda, arguments: [@foo_probe])
           end
 

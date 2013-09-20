@@ -22,6 +22,19 @@ module Wrapi
     end
 
 
+    # returns first client that is:
+    #  not equal to current_client AND
+    #  meets conditions in &blk, if passed in
+    def next_client(current_client=nil, &blk)
+      if block_given?
+        filtered_clients = clients.select(&blk)
+      else
+        filtered_clients = clients
+      end
+
+      filtered_clients.select{|c| c != current_client}.first
+    end
+
     def bare_clients
       clients.map{|c| c.bare_client}
     end

@@ -5,7 +5,7 @@ require_relative 'fetch_process'
 module Wrapi
   class Manager
     extend Forwardable
-    def_delegators :@queue, :find_client, :remove_client, :bare_clients, :clients
+    def_delegators :@queue, :find_client, :remove_client, :bare_clients, :clients, :next_client
 
     attr_reader :error_handlers
 
@@ -31,6 +31,8 @@ module Wrapi
     def has_clients?
       client_count > 0
     end
+
+   
    
     # Public: not used
     def shuffle_clients

@@ -47,7 +47,7 @@ describe "Wrapi::Manager" do
     it 'should care about delegation, I think?'
   end
 
-  context 'client refreshing -- delegated to the process', focus: true do 
+  context 'client refreshing -- delegated to the process' do 
 
     # Not sure where this should be handled, in fetch process or not...
     describe '#active_client' do 
@@ -59,28 +59,37 @@ describe "Wrapi::Manager" do
         expect(@manager.next_client).to be_nil  
       end
 
-      it 'should accept optional block to do filtering for client' do 
+      it 'should optionally accept a client that the manager does not want to match' do 
         @client_a = 'Hey'
-        @client_b = 'You'
-
-        @manager.next_client{|c| c.upcase == 'YOU'}
-        expect().to eq @client_b
+        @manager.add_clients(@client_a)        
+        expect(@manager.next_client(@client_a)).to be_nil
+        # sanity check:
+        expect(@manager.next_client).to eq @client_a
       end
 
-     it 'should not re-select the same client instance' do 
-        @client_a = 'Hey'
-        @client_b = 'You'
+      describe 'optional filter block' do 
+        before(:each) do 
+          @client_a = 'Hey'
+          @client_b = 'You'
+          @manager.add_clients([@client_a, @client_b])
+        end
 
-        @manager.next_client{|c| c.upcase == 'YOU'}).to eq @client_b
+        it 'should accept optional block to do filtering for client' do 
+          expect(@manager.next_client{|c| c.upcase == 'YOU'}).to eq @client_b
+        end
+
+        it 'should not re-select the same client instance' do 
+          expect(@manager.next_client(@client_b){|c| c.upcase == 'YOU'}).to be_nil
+        end
       end
 
     end
   end
 
-  context 'error handling', focus: true do 
+  context 'error handling'  do 
     context 'basic error registering' do 
       it 'should allow us to register errors by type' do
-        @handler =  ->(x){  true  }
+        @handler = ->(x){  true  }
         @manager.register_error_handler(StandardError, @handler)
 
         expect(@manager.get_error_handler(StandardError)).to eq @handler

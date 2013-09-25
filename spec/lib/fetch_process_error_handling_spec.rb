@@ -26,7 +26,27 @@ describe 'Wrapi::FetchProcess error_handling' do
       it 'should have no iterations' do 
         expect(@process.iterations).to eq 0
       end
+
+      context 'error tracking' do 
+        describe '#error_count' do 
+          it 'should return integer of errors encountered' do 
+            expect(@process.error_count).to eq 1
+          end
+        end
+
+        describe '#error_count by type' do 
+          it 'should return error by kind and respect inheritance' do 
+            expect(@process.error_count(StandardError)).to eq 1
+            expect(@process.error_count(NoMethodError)).to eq 1
+
+            expect(@process.error_count(ArgumentError)).to eq 0
+          end
+        end
+      end
+
     end
+
+
 
     describe '#fix_error' do 
 

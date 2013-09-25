@@ -11,6 +11,7 @@ module Wrapi
 
     def initialize(client_instance, process_name, opts={})
       set_client(client_instance)
+      @errors_collection = []
       @caught_error = nil
       @process_name = process_name
       @iterations = 0
@@ -160,8 +161,16 @@ module Wrapi
 
 
 
+    def error_count(err_type = nil)
+      @errors_collection.size
+    end
+
     private
 
+
+    def log_error(err)
+      @errors_collection << err
+    end
 
     def clear_error!
       @caught_error = nil
@@ -169,6 +178,9 @@ module Wrapi
 
     def set_error(err)
       @caught_error = err
+      log_error(@caught_error)
+
+      @caught_error
     end
 
     # Internal: Perform the specified client operation

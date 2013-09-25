@@ -29,7 +29,6 @@ describe "Wrapi::Manager" do
 
       expect(@manager.has_clients?).to be_false
     end
-
   end
 
   context 'wrap in managed clients' do 
@@ -43,8 +42,6 @@ describe "Wrapi::Manager" do
     it 'should wrap each client in ManagedClient' do 
       expect(@manager.find_client).to be_a ManagedClient
     end
-
-    it 'should care about delegation, I think?'
   end
 
   context 'client refreshing -- delegated to the process' do 
@@ -82,7 +79,6 @@ describe "Wrapi::Manager" do
           expect(@manager.next_client(@client_b){|c| c.upcase == 'YOU'}).to be_nil
         end
       end
-
     end
   end
 

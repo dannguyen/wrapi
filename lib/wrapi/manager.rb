@@ -7,7 +7,7 @@ module Wrapi
     extend Forwardable
     def_delegators :@queue, :find_client, :remove_client, :bare_clients, :clients, :next_client
 
-    attr_reader :error_handlers
+    attr_reader :error_handlerss
 
     def initialize
       @queue = ClientQueue.new
@@ -124,11 +124,10 @@ module Wrapi
     # e.g. fetch_single_tweet(id: 10101099 )
     #
     # raises error if block is given
-    def fetch_single(client_foo, opts={})
+    def fetch_single(client_foo, opts={}, &blk)
       raise ArgumentError, "Block is not expected for singular call" if block_given?
       arr = fetch(client_foo, opts, :single)
 
-      # TODO: Shouldn't this be handled in SingularFetchProcess?
       return arr.first.body
     end
 

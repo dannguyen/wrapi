@@ -12,12 +12,22 @@ module Wrapi
       extend Forwardable
 
       # hello bi-directional knowledge!
-      def_delegators :@manager, :has_clients?, :bare_clients, :clients, :fetch_single, :fetch_batch, :fetch
+      def_delegators :@manager, :has_clients?, :bare_clients, :clients, 
+        :fetch_single, :fetch_batch, :fetch,
+        :register_error_handler
     end
 
 
     def initialize
       @manager = Manager.new
+
+      register_error_handling
+    end
+
+    # Public: Wraps the private individual error handling routines
+    # abstract method
+    def register_error_handling
+      # define in mixin
     end
 
     module ClassMethods
@@ -27,29 +37,6 @@ module Wrapi
         w.load_credentials_and_initialize_clients(*args)
 
         return w
-      end
-
-
-      def handle_error(err_klass, &blk)
-        unless err_klass < Exception
-          raise ArgumentError, "Please pass in an Exception/Error class, not a #{err_klass}"
-        end        
-
-        unless block_given? && blk.arity == 1
-          raise LocalJumpError, 'Need to pass a block in with 1 argument'
-        end
-
-        handled_errors[err_klass] = Hashie::Mash.new(handling: blk)
-      end
-
-
-      def handle_rate_limited_error
-
-      end
-
-
-      def handled_errors
-        self.list_of_handled_errors ||= Hashie::Mash.new
       end
     end
 
@@ -68,9 +55,6 @@ module Wrapi
       true 
     end
 
-
-
-
     def parse_credentials(*args)
       # Abstract
       return []
@@ -88,3 +72,29 @@ module Wrapi
 end
 
 require_relative 'manager' 
+
+
+
+
+
+      # def handle_error(err_klass, &blk)
+      #   unless err_klass < Exception
+      #     raise ArgumentError, "Please pass in an Exception/Error class, not a #{err_klass}"
+      #   end        
+
+      #   unless block_given? && blk.arity == 1
+      #     raise LocalJumpError, 'Need to pass a block in with 1 argument'
+      #   end
+
+      #   handled_errors[err_klass] = Hashie::Mash.new(handling: blk) 
+      # end
+
+
+      # def handle_rate_limited_error
+
+      # end
+
+
+      # def handled_errors
+      #   self.list_of_handled_errors ||= Hashie::Mash.new
+      # end

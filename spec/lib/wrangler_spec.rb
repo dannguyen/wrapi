@@ -24,24 +24,15 @@ describe 'Wrapi::Wrangler' do
     it 'should read from credentials_array '
   end
 
-
-  context 'configuration' do 
-    context 'client_wrapping' do 
-      it 'should wrap a client in Wrapi::Client'
-      it 'should configure client instantiation'
-      it 'should configure client rate limited error'
-      it 'should configure other errors'
-      it 'should configure how rate readiness is set'
-
-      context 'rate readiness' do 
-        it 'should have a configuration hash'
-        it 'should have a default wait'
-      end
-    end
+  
+end
 
 
 
-    context 'error handling' do 
+=begin
+
+
+ context 'error handling' do 
       before(:each) do 
         @klass = AwesomeApeWrangler.dup
       end
@@ -77,13 +68,23 @@ describe 'Wrapi::Wrangler' do
 
       describe '::handle_rate_limited_error' do 
         it 'should accept timeout parameter'
-
       end
 
 
-    end
 
+  context 'configuration' do 
+    context 'client_wrapping' do 
+      it 'should wrap a client in Wrapi::Client'
+      it 'should configure client instantiation'
+      it 'should configure client rate limited error'
+      it 'should configure other errors'
+      it 'should configure how rate readiness is set'
+
+      context 'rate readiness' do 
+        it 'should have a configuration hash'
+        it 'should have a default wait'
+      end
+    end
   end
 
-
-end
+=end

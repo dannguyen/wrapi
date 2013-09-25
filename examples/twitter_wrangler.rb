@@ -10,16 +10,17 @@ class TwitterWrangler
   include Wrapi::Wrangler
 
   # Public: Maximum Twitter ID (as of 2013)...any bigger and Twitter API will reject it as invalid
-  
+    # not sure why (2**63)-1 is rejected, as that's a 64 bit integer. This works fine for now.
   # Examples:
   #
-  #   MAX_TWEET_ID is:                    9223372036854775807
-  #   id of current tweet from firehose:  380000000000000000
-  MAX_TWEET_ID = (2**63) - 1
+  #   MAX_TWEET_ID is:                    4611686018427387904
+  #   id of current tweet from firehose:   380000000000000000
+  MAX_TWEET_ID = (2**62) - 1
  
   # Public: Twitter API allows for 100 user profiles to be retrieved at a time
   MAX_SIZE_OF_USERS_BATCH = 100
 
+  MAX_COUNT_OF_TWEETS_BATCH = 200
 
 
 
@@ -50,7 +51,37 @@ class TwitterWrangler
 
 
 
-end
+  def register_error_handling
+
+    register_error_handler( Twitter::Error::TooManyRequests, 
+      ->(f_process, the_manager) do 
+        if f_process.error_count < 5      
+          sleep 10
+          return true
+        else
+          return false
+        end
+      end
+
+    )
+
+
+
+
+    def register_error_handler(err_type, proc)
+      @error_handlers[err_type] = proc
+    end
+
+    def get_error_handler(err_type)
+      @error_handlers[err_type]
+    end
+
+
+
+  end
+
+
+
 
 
 
@@ -84,6 +115,9 @@ end
   
     return arr.first
   end
+
+
+
 
   # Public: fetch the information for one list
   #
@@ -146,10 +180,10 @@ end
 
 
 
-  def fetch_batch_user_timeline(user_id, count=MAX_SIZE_OF_USERS_BATCH, twitter_opts={}, &blk)
+  def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
 
     twitter_options = Hashie::Mash.new(twitter_opts).tap do |o|
-      o[:count] ||= 200
+      o[:count] ||= MAX_COUNT_OF_TWEETS_BATCH
       o[:include_rts] ||= true 
       o[:trim_user] ||= true 
       o[:since_id] ||= 1 
@@ -163,12 +197,12 @@ end
     }
 
     resp_callback = ->(loop_state, args){
-      o = args[1]
+      opts = args[1]
       if tweets_array = loop_state.latest_body
-        o[:max_id] =  tweets_array.last.andand.id.to_i - 1
+        opts[:max_id] =  tweets_array.last.andand.id.to_i - 1
       end
 
-      puts "max_id: #{o.max_id}\t since_id: #{o.since_id}"
+      puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
     }
 
 
@@ -235,6 +269,8 @@ end
 
 
 
+
+end
 
 
 

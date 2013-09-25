@@ -78,6 +78,8 @@ module Wrapi
     # allows Manager to manipulate the fetch_process, such as resetting arguments, etc.
     # and to set a new client
     #
+    # Yields: :fetch_process
+    #
     # at the end, the error is cleared
     def fix_error(&blk)
       error_handling_result = blk.call( self )

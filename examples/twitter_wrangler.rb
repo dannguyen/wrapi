@@ -118,7 +118,7 @@ class TwitterWrangler
 
 
   # Public: fetch an array of user profiles given an array of user ids or screen_names
-  # note: this is actually a unitary operation, in that the batching (breaking up the array)
+  # note: this is actually a singular operation, in that the batching (breaking up the array)
   #   is done by the method, and then passed into twitter's API with the :users call
   #
   # ids           -    twitter user ids or screen_names (Array)
@@ -167,7 +167,9 @@ class TwitterWrangler
 
   def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
 
-    twitter_options = Hashie::Mash.new(twitter_opts).tap do |o|
+    fetch_options = {}
+
+    opts = Hashie::Mash.new(twitter_opts).tap do |o|
       o[:count] ||= MAX_COUNT_OF_TWEETS_BATCH
       o[:include_rts] ||= true 
       o[:trim_user] ||= true 
@@ -175,28 +177,25 @@ class TwitterWrangler
       o[:max_id] ||= MAX_TWEET_ID
     end
 
-    while_cond = ->(loop_state, args){ 
+    fetch_options[:arguments] = [user_id, opts]
+
+    fetch_options[:while_condition] = ->(loop_state, args) do 
       o = args[1]
-
       o[:max_id] > o[:since_id]
-    }
+    end
 
-    resp_callback = ->(loop_state, args){
+    fetch_options[:response_callback] = ->(loop_state, args) do 
       opts = args[1]
       if tweets_array = loop_state.latest_body
         opts[:max_id] =  tweets_array.last.andand.id.to_i - 1
       end
 
       puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
-    }
+    end
 
 
 
-    @manager.fetch_batch(:user_timeline, 
-                          arguments: [user_id, twitter_options],    
-                          while_condition: while_cond, 
-                          response_callback: resp_callback, &blk) 
-
+    @manager.fetch_batch(:user_timeline, fetch_options, &blk) 
   end
 
 

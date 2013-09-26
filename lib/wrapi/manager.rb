@@ -99,9 +99,8 @@ module Wrapi
               #   then raise the error
               raise response.error   
             end
+          end # of response.on_error
 
-
-          end
         end
       end# end of while loop
 

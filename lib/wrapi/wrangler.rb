@@ -17,12 +17,21 @@ module Wrapi
                         :has_clients?, :bare_clients, :clients, 
                         :fetch_single, :fetch_batch, :fetch,
                         :register_error_handler, :get_error_handler
-    end
+    end # end included
 
+
+    module ClassMethods
+      def init_clients(*args)
+        w = self.new 
+        w.load_credentials_and_initialize_clients(*args)
+
+        return w
+      end
+    end
+    
 
     def initialize
       @manager = Manager.new
-
       register_error_handling
     end
 
@@ -32,15 +41,7 @@ module Wrapi
       # define in mixin
     end
 
-    module ClassMethods
 
-      def init_clients(*args)
-        w = self.new 
-        w.load_credentials_and_initialize_clients(*args)
-
-        return w
-      end
-    end
 
 
     # cred_thingies is what 

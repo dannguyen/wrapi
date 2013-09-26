@@ -97,6 +97,8 @@ module Wrapi
       else
         raise ImproperErrorHandling, "Error handling method must return true/false, not a #{error_handling_result.class}"
       end
+
+      return error_handling_result
     end
 
 

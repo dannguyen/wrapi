@@ -12,7 +12,7 @@ module Wrapi
       extend Forwardable
 
       # hello bi-directional knowledge!
-      def_delegators :@manager, 
+      def_delegators :@fetcher, 
                         :add_clients,
                         :has_clients?, :bare_clients, :clients, 
                         :fetch_single, :fetch_batch, :fetch,
@@ -31,7 +31,7 @@ module Wrapi
     
 
     def initialize
-      @manager = Manager.new
+      @fetcher = Fetcher.new
       register_error_handling
     end
 
@@ -52,7 +52,7 @@ module Wrapi
 
       @credentials.each do |cred|
         client = initialize_client(cred)
-        @manager.add_clients(client)
+        @fetcher.add_clients(client)
       end
 
       true 
@@ -74,7 +74,7 @@ module Wrapi
   end
 end
 
-require_relative 'manager' 
+require_relative 'fetcher' 
 
 
 

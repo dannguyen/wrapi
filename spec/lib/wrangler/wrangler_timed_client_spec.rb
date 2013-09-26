@@ -3,7 +3,7 @@ require 'spec_helper'
 module Wrapi
   describe 'Wrangler end-to-end with TimedClient' do    
     describe 'client handling' do 
-      it 'should #add_clients via @manager' do 
+      it 'should #add_clients via @fetcher' do 
         wrangler = TimedWrangler.new
         expect(wrangler.has_clients?).to be_false
         wrangler.add_clients([TimedClient.new, TimedClient.new])
@@ -167,9 +167,9 @@ class TimedWrangler
   end
 
   def register_error_handling
-    register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetch_process, manager|
+    register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetch_process, fetcher|
       # replace client
-      new_client =  manager.find_next_client(fetch_process.client){|c| c.ready_for_call? }
+      new_client =  fetcher.find_next_client(fetch_process.client){|c| c.ready_for_call? }
       # true or false
       boolean_to_return = case 
       when new_client

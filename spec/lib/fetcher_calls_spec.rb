@@ -1,14 +1,14 @@
 require 'spec_helper'
 
-describe 'Wrapi::Manager' do 
+describe 'Wrapi::Fetcher' do 
 
   before(:each) do 
     @client = double()
     @client.stub(:call_the_api){ 'Hello' }
     @client.stub(:call_the_api_with_args){|a| "Hello #{a}" }
 
-    @manager = Manager.new
-    @manager.add_clients(@client)
+    @fetcher = Fetcher.new
+    @fetcher.add_clients(@client)
   end
 
   describe '#fetch' do 
@@ -16,11 +16,11 @@ describe 'Wrapi::Manager' do
     context 'when foo is a symbol or string' do 
       it 'should invoke :foo upon a client' do 
         expect(@client).to receive(:call_the_api)
-        @manager.fetch(:call_the_api)
+        @fetcher.fetch(:call_the_api)
       end
 
       it 'expects the second argument to be an options hash' do 
-        expect{@manager.fetch(:call_the_api_with_args, 'argument!')}.to raise_error ArgumentError
+        expect{@fetcher.fetch(:call_the_api_with_args, 'argument!')}.to raise_error ArgumentError
       end
 
     end
@@ -28,12 +28,12 @@ describe 'Wrapi::Manager' do
     context 'optional options' do 
       describe ':arguments' do 
         it 'expects :arguments as an array' do 
-          expect{@manager.fetch(:call_the_api_with_args, arguments: 'world')}.to raise_error ArgumentError
+          expect{@fetcher.fetch(:call_the_api_with_args, arguments: 'world')}.to raise_error ArgumentError
         end
 
         it 'expects :arguments to be sent to the client' do 
           expect(@client).to receive(:call_the_api_with_args).with('world')
-          @manager.fetch(:call_the_api_with_args, arguments: ['world'])
+          @fetcher.fetch(:call_the_api_with_args, arguments: ['world'])
         end
 
         it 'does not dupe arguments' 
@@ -41,7 +41,7 @@ describe 'Wrapi::Manager' do
 
       describe 'while_condition' do 
         it 'expects a lambda' do 
-          expect{@manager.fetch(:call_the_api, while_condition: 'not a lambda')}.to raise_error ArgumentError
+          expect{@fetcher.fetch(:call_the_api, while_condition: 'not a lambda')}.to raise_error ArgumentError
         end
 
         context 'within loop', true do 
@@ -58,19 +58,19 @@ describe 'Wrapi::Manager' do
 
           it 'calls lambda with arity of two: FetchProcess and an Array' do 
             expect(@foo_while_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
-            @manager.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
+            @fetcher.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
           end
 
           it 'loops until while_condition is met' do 
             expect(@client).to receive(:call_the_api_with_args).exactly(2).times
-            @manager.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
+            @fetcher.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
           end            
 
           it 'executes while_condition? check more than a few times' do
             # 3 times in the internal execute check via #ready_to_execute?
             # 2 times inside fetch_process
             expect(@foo_while_probe).to receive(:probe).exactly(5).times
-            @manager.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
+            @fetcher.fetch(:call_the_api_with_args, arguments: [@foo_while_probe], while_condition: lambda)
           end
         end
       end
@@ -91,9 +91,9 @@ describe 'Wrapi::Manager' do
         end
 
         it 'if present, must be a lambda with arity of two' do 
-          expect{@manager.fetch(:call_the_api, response_callback: "not a proc")}.to raise_error ArgumentError
+          expect{@fetcher.fetch(:call_the_api, response_callback: "not a proc")}.to raise_error ArgumentError
           # must have arity of two
-          expect{@manager.fetch(:call_the_api, response_callback: ->(a,b,c){ a }) }.to raise_error ArgumentError
+          expect{@fetcher.fetch(:call_the_api, response_callback: ->(a,b,c){ a }) }.to raise_error ArgumentError
         end
         
 
@@ -101,7 +101,7 @@ describe 'Wrapi::Manager' do
           it "called with fetch_process and arguments" do 
             expect(@foo_probe).to receive(:probe).with(an_instance_of(SingularFetchProcess), an_instance_of(Array))
             
-            @manager.fetch(:call_the_api_with_args, response_callback: lambda, arguments: [@foo_probe])
+            @fetcher.fetch(:call_the_api_with_args, response_callback: lambda, arguments: [@foo_probe])
           end
 
           it "executes after fetch_process is modified" do
@@ -118,7 +118,7 @@ describe 'Wrapi::Manager' do
               puts "hash: #{binded_hash[:increments]}\n\n\n"
 
             }
-            @manager.fetch(:call_the_api_with_args, arguments: [@hash], response_callback: @callback)
+            @fetcher.fetch(:call_the_api_with_args, arguments: [@hash], response_callback: @callback)
 
             expect(@hash[:increments]).to eq 1
           end
@@ -130,18 +130,18 @@ describe 'Wrapi::Manager' do
         context 'exists' do 
           it 'must be a Proc with arity of one FetchedResponse' do 
             expect{ |b|
-              @manager.fetch(:call_the_api, &b)   
+              @fetcher.fetch(:call_the_api, &b)   
             }.to yield_with_args FetchedResponse
           end
 
           it 'must yield as many times as there are iterations' do 
             expect{ |b| 
-              @manager.fetch(:call_the_api, {while_condition: ->(x,y){ x.iterations < 2 }}, &b)
+              @fetcher.fetch(:call_the_api, {while_condition: ->(x,y){ x.iterations < 2 }}, &b)
             }.to yield_control.exactly(2).times 
           end
 
           it 'must return an empty array' do 
-            results = @manager.fetch(:call_the_api){ |b| }
+            results = @fetcher.fetch(:call_the_api){ |b| }
             expect(results).to be_empty
             expect(results).to be_an(Array) 
           end
@@ -149,13 +149,13 @@ describe 'Wrapi::Manager' do
       
         context 'does not exist' do 
           it 'returns an array of responses' do 
-            results = @manager.fetch(:call_the_api)
+            results = @fetcher.fetch(:call_the_api)
             expect(results ).to be_an Array
             expect(results).not_to be_empty
           end
 
           it 'contains FetchedResponse objects' do 
-            @resp = @manager.fetch(:call_the_api).first
+            @resp = @fetcher.fetch(:call_the_api).first
             expect( @resp ).to be_a FetchedResponse
             expect(@resp.body).to eq 'Hello'
           end
@@ -165,12 +165,12 @@ describe 'Wrapi::Manager' do
       describe 'passing in a IO object via :transcript' do 
 
         it 'should raise ArgumentError if transcript is non-nil and does not respond to #puts' do 
-          expect{ @manager.fetch(:call_the_api, transcript: [404] )}.to raise_error ArgumentError
+          expect{ @fetcher.fetch(:call_the_api, transcript: [404] )}.to raise_error ArgumentError
         end
 
         it 'should print message to an IO object' do 
           @io = StringIO.new
-          @manager.fetch(:call_the_api, transcript: @io)
+          @fetcher.fetch(:call_the_api, transcript: @io)
           expect(@io.string).to match(/:call_the_api with :arguments/)
         end
 
@@ -184,11 +184,11 @@ describe 'Wrapi::Manager' do
 
   describe '#fetch_single' do 
     it 'returns first FetchedResponse body as a convenience' do 
-      expect(@manager.fetch_single(:call_the_api)).to eq 'Hello'
+      expect(@fetcher.fetch_single(:call_the_api)).to eq 'Hello'
     end
 
     it 'raises an error if block is given' do 
-      expect{@manager.fetch_single(:call_the_api){|x| } }.to raise_error ArgumentError
+      expect{@fetcher.fetch_single(:call_the_api){|x| } }.to raise_error ArgumentError
     end
   end
 
@@ -196,7 +196,7 @@ describe 'Wrapi::Manager' do
     context 'required options' do 
       describe ':while_condition' do 
         it 'must be present' do 
-          expect{ @manager.fetch_batch(:call_the_api, response_callback: ->(a,b){} ) }.to raise_error ArgumentError
+          expect{ @fetcher.fetch_batch(:call_the_api, response_callback: ->(a,b){} ) }.to raise_error ArgumentError
         end
       end  
     end

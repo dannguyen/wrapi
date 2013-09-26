@@ -53,7 +53,7 @@ class TwitterWrangler
 
   def register_error_handling
 
-    proc = ->(f_process, the_manager) do 
+    proc = ->(f_process, the_fetcher) do 
       if f_process.error_count < 1      
         sleep 10
         return true
@@ -195,60 +195,60 @@ class TwitterWrangler
 
 
 
-    @manager.fetch_batch(:user_timeline, fetch_options, &blk) 
+    @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 
   end
 
 
   def fetch_batch_follower_ids(user_id, twitter_opts={}, &blk)
-    manager_args = Hashie::Mash.new 
-    manager_args[:arguments] = [user_id] 
-    manager_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{ |o|
+    fetcher_args = Hashie::Mash.new 
+    fetcher_args[:arguments] = [user_id] 
+    fetcher_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{ |o|
       o[:cursor] ||= - 1
     }
 
-    manager_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
-    manager_args[:response_callback] = ->(loop_state, args){ 
+    fetcher_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
+    fetcher_args[:response_callback] = ->(loop_state, args){ 
       puts "next cursor: #{args[1][:cursor]}"
       args[1][:cursor] = loop_state.latest_body.next_cursor  
     }
 
-    fetch_batch(:follower_ids, manager_args, &blk)
+    fetch_batch(:follower_ids, fetcher_args, &blk)
   end
 
 
   # Public: Fetch the lists that a user is a member of
   def fetch_batch_memberships(user_id, twitter_opts={}, &blk)
-    manager_args = Hashie::Mash.new 
-    manager_args[:arguments] = [user_id]
-    manager_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{|t| t[:cursor] ||= -1 }
+    fetcher_args = Hashie::Mash.new 
+    fetcher_args[:arguments] = [user_id]
+    fetcher_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{|t| t[:cursor] ||= -1 }
 
-    manager_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
-    manager_args[:response_callback] = ->(loop_state, args){ 
+    fetcher_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
+    fetcher_args[:response_callback] = ->(loop_state, args){ 
       puts "next cursor: #{args[1][:cursor]}"
       args[1][:cursor] = loop_state.latest_body.next_cursor  
     }
 
-    fetch_batch(:memberships, manager_args, &blk)
+    fetch_batch(:memberships, fetcher_args, &blk)
   end
 
 
   # Public: Fetch the members of a list
   def fetch_batch_list_members(list_id, twitter_opts={}, &blk)
-    manager_args = Hashie::Mash.new 
-    manager_args[:arguments] = []
-    manager_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{ |t| 
+    fetcher_args = Hashie::Mash.new 
+    fetcher_args[:arguments] = []
+    fetcher_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{ |t| 
       t[:list_id] = list_id
       t[:cursor] ||= -1 
       t[:skip_status] ||= false
     }
 
-    manager_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
-    manager_args[:response_callback] = ->(loop_state, args){ 
+    fetcher_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
+    fetcher_args[:response_callback] = ->(loop_state, args){ 
       puts "next cursor: #{args[1][:cursor]}"
       args[1][:cursor] = loop_state.latest_body.next_cursor  
     }
 
-    fetch_batch(:list_members, manager_args, &blk)
+    fetch_batch(:list_members, fetcher_args, &blk)
   end
 
 
@@ -269,10 +269,10 @@ end
 
 
 =begin
-  define_rate_errors(Twitter::RateLimit, Twitter::Something) do |manager, error|
+  define_rate_errors(Twitter::RateLimit, Twitter::Something) do |fetcher, error|
 
-    manager.remove_client(client)
-    manager.find_new_client
+    fetcher.remove_client(client)
+    fetcher.find_new_client
 
     true
   end

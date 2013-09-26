@@ -19,7 +19,7 @@ module Wrapi
       @errors_collection = []
       @caught_error = nil
 
-      # Passing in the arguments from Manager's method   
+      # Passing in the arguments from Fetcher's method   
      
       @arguments = @options[:arguments] || []
       raise ArgumentError, ":arguments needs to be an array, not a #{@arguments.class}" unless @arguments.is_a?(Array)
@@ -44,7 +44,7 @@ module Wrapi
     end
 
 
-    # Public: Allows the calling manager to replace the client
+    # Public: Allows the calling fetcher to replace the client
     def set_client(a_client_instance)
       raise ArgumentError, "first argument needs to be a ManagedClient, not a #{a_client_instance.class}" unless a_client_instance.is_a?(ManagedClient)
       @managed_client = a_client_instance
@@ -79,7 +79,7 @@ module Wrapi
     end
 
 
-    # allows Manager to manipulate the fetch_process, such as resetting arguments, etc.
+    # allows Fetcher to manipulate the fetch_process, such as resetting arguments, etc.
     # and to set a new client
     #
     # Yields: :fetch_process
@@ -102,7 +102,7 @@ module Wrapi
     end
 
 
-    # Public: A method invoked by the manager, typically when the response is a success
+    # Public: A method invoked by the fetcher, typically when the response is a success
     # The @iterations is incremented and stores the @latest_response
     # ...careful, proceed! is exposed wherever the fetch_process is yielded.
     def proceed!

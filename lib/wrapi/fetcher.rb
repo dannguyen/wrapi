@@ -3,7 +3,7 @@ require_relative 'managed_client'
 require_relative 'fetch_process'
 
 module Wrapi
-  class Manager
+  class Fetcher
     extend Forwardable
     def_delegators :@queue, 
                       :clients, :find_client, :remove_client, 
@@ -86,7 +86,7 @@ module Wrapi
             ## or else fetch_process will raise an error
             if error_handling_proc = get_error_handler(response.error)
               # to the registered error handling process, 
-              # we pass the current fetch_process and self(Manager)
+              # we pass the current fetch_process and self(Fetcher)
               #
               # fix_error returns true or false
               error_resolved = fetch_process.fix_error do |_fetch_process|

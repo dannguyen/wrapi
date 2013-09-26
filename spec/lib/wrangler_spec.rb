@@ -4,7 +4,7 @@ class AwesomeApeWrangler
   include Wrapi::Wrangler
 
   def register_error_handling
-    register_error_handler(LocalJumpError, ->(f_process, manager_instance ){ return false })
+    register_error_handler(LocalJumpError, ->(f_process, fetcher_instance ){ return false })
   end
 end
 

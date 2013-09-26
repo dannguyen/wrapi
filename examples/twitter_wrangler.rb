@@ -63,10 +63,6 @@ class TwitterWrangler
     end
 
     register_error_handler( Twitter::Error::TooManyRequests, proc)
-
-
-
-
   end
 
 

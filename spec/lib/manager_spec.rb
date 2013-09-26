@@ -51,17 +51,17 @@ describe "Wrapi::Manager" do
       it 'should be the first client that gets sent to a process'
     end
 
-    describe '#next_client' do 
+    describe '#find_next_client' do 
       it 'should be nil if no other client' do 
-        expect(@manager.next_client).to be_nil  
+        expect(@manager.find_next_client).to be_nil  
       end
 
       it 'should optionally accept a client that the manager does not want to match' do 
         @client_a = 'Hey'
         @manager.add_clients(@client_a)        
-        expect(@manager.next_client(@client_a)).to be_nil
+        expect(@manager.find_next_client(@client_a)).to be_nil
         # sanity check:
-        expect(@manager.next_client).to eq @client_a
+        expect(@manager.find_next_client).to eq @client_a
       end
 
       describe 'optional filter block' do 
@@ -72,11 +72,11 @@ describe "Wrapi::Manager" do
         end
 
         it 'should accept optional block to do filtering for client' do 
-          expect(@manager.next_client{|c| c.upcase == 'YOU'}).to eq @client_b
+          expect(@manager.find_next_client{|c| c.upcase == 'YOU'}).to eq @client_b
         end
 
         it 'should not re-select the same client instance' do 
-          expect(@manager.next_client(@client_b){|c| c.upcase == 'YOU'}).to be_nil
+          expect(@manager.find_next_client(@client_b){|c| c.upcase == 'YOU'}).to be_nil
         end
       end
     end

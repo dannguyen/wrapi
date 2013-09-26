@@ -7,7 +7,7 @@ module Wrapi
     extend Forwardable
     def_delegators :@queue, 
                       :clients, :find_client, :remove_client, 
-                      :bare_clients, :next_client
+                      :bare_clients, :find_next_client
 
     attr_reader :error_handlers
 
@@ -69,22 +69,38 @@ module Wrapi
             fetch_process.proceed!            
           end
 
+
+
           # Error handling
           response.on_error do 
             # if there was a block, yield it to the Wrangler 
             if callback_on_response_object
               yield response 
-            else
-              raise response.error 
             end
+              
+
+            # set a state variable
+            error_resolved = false
 
             ## note: error_handling_proc MUST return true or false
             ## or else fetch_process will raise an error
             if error_handling_proc = get_error_handler(response.error)
-              fetch_process.fix_error do |fp|
-                error_handling_proc.call(fp)
+              # to the registered error handling process, 
+              # we pass the current fetch_process and self(Manager)
+              #
+              # fix_error returns true or false
+              error_resolved = fetch_process.fix_error do |_fetch_process|
+                error_handling_proc.call(_fetch_process, self)
               end
             end
+
+            unless error_resolved
+              # if no error handler found, or fetch_process.fix_error returned false,
+              #   then raise the error
+              raise response.error   
+            end
+
+
           end
         end
       end# end of while loop
@@ -93,17 +109,20 @@ module Wrapi
     end
 
 
-    def register_error_handler(err_type, proc=nil, &handling_blk)
+    def register_error_handler(err_klass, proc=nil, &handling_blk)
       if proc.nil? && !block_given?
         raise ArgumentError, "Must either pass in a proc or a handling block"
       end
       proc = proc || handling_blk
 
-      @error_handlers[err_type] = proc
+      @error_handlers[err_klass] = proc
     end
 
-    def get_error_handler(err_type)
-      @error_handlers[err_type]
+    # if it is an Error instance, use its klass
+    def get_error_handler(err)
+      klass = err.is_a?(Class) ? err : err.class
+
+      @error_handlers[klass]
     end
 
     # same as fetch, but enforces the existence of while_condition

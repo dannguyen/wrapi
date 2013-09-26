@@ -5,7 +5,9 @@ describe 'Wrapi::FetchProcess error_handling' do
   describe 'error fixing'  do 
     before(:each) do 
       @client = ManagedClient.new("1.1")
-      @process = FetchProcess.new( @client, :ceil)
+
+      # This process will always rais a NoMethod error: nil.ceil
+      @process = FetchProcess.new( @client, :ceil) 
       @resp = nil
       @process.execute{|r| @resp = r}
     end
@@ -23,7 +25,7 @@ describe 'Wrapi::FetchProcess error_handling' do
         expect(@process.ready_to_execute?).to be_false
       end
 
-      it 'should have no iterations' do 
+      it 'should have no @iterations' do 
         expect(@process.iterations).to eq 0
       end
 
@@ -49,7 +51,6 @@ describe 'Wrapi::FetchProcess error_handling' do
 
 
     describe '#fix_error' do 
-
       describe 'requires true/false for result of passed in block' do 
         it 'should raise error if non-Boolean' do 
           b = Proc.new{|r| "not truthy" }

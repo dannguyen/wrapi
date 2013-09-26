@@ -2,6 +2,10 @@ require 'spec_helper'
 
 class AwesomeApeWrangler 
   include Wrapi::Wrangler
+
+  def register_error_handling
+    register_error_handler(LocalJumpError, ->(f_process, manager_instance ){ return false })
+  end
 end
 
 describe 'Wrapi::Wrangler' do 
@@ -24,6 +28,13 @@ describe 'Wrapi::Wrangler' do
     it 'should read from credentials_array '
   end
 
+
+  context 'error handling' do 
+     it 'runs #register_error_handling' do 
+        ape = AwesomeApeWrangler.new
+        expect(ape.get_error_handler(LocalJumpError)).to be_a Proc
+     end
+  end
   
 end
 

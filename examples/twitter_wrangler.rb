@@ -53,28 +53,17 @@ class TwitterWrangler
 
   def register_error_handling
 
-    register_error_handler( Twitter::Error::TooManyRequests, 
-      ->(f_process, the_manager) do 
-        if f_process.error_count < 5      
-          sleep 10
-          return true
-        else
-          return false
-        end
+    proc = ->(f_process, the_manager) do 
+      if f_process.error_count < 1      
+        sleep 10
+        return true
+      else
+        return false
       end
-
-    )
-
-
-
-
-    def register_error_handler(err_type, proc)
-      @error_handlers[err_type] = proc
     end
 
-    def get_error_handler(err_type)
-      @error_handlers[err_type]
-    end
+    register_error_handler( Twitter::Error::TooManyRequests, proc)
+
 
 
 

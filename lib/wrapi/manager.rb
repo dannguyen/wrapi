@@ -5,9 +5,11 @@ require_relative 'fetch_process'
 module Wrapi
   class Manager
     extend Forwardable
-    def_delegators :@queue, :find_client, :remove_client, :bare_clients, :clients, :next_client
+    def_delegators :@queue, 
+                      :clients, :find_client, :remove_client, 
+                      :bare_clients, :next_client
 
-    attr_reader :error_handlerss
+    attr_reader :error_handlers
 
     def initialize
       @queue = ClientQueue.new
@@ -16,7 +18,6 @@ module Wrapi
 
     def add_clients(arr)
       array = arr.is_a?(Hash) ? [arr] : Array(arr) 
-
       array.each do |client|
         @queue.add_client ManagedClient.new( client ) 
       end
@@ -32,8 +33,6 @@ module Wrapi
       client_count > 0
     end
 
-   
-   
     # Public: not used
     def shuffle_clients
       @queue.shuffle!
@@ -55,7 +54,6 @@ module Wrapi
       while fetch_process.ready_to_execute? 
         # expecting FetchResponse object
         fetch_process.execute do |response|
-
           response.on_success do
             # if there was a block passed in by the Wrangler, 
             # then yield the response to it
@@ -64,7 +62,6 @@ module Wrapi
             else
               # otherwise, stash it into array of bodies
               # NOTE: this may not actually be supported
-
               array_of_bodies << response
             end
 
@@ -74,17 +71,12 @@ module Wrapi
 
           # Error handling
           response.on_error do 
-            
             # if there was a block, yield it to the Wrangler 
             if callback_on_response_object
               yield response 
             else
               raise response.error 
             end
-
-
-########## if an error handler has been set...
-######## not implemented
 
             ## note: error_handling_proc MUST return true or false
             ## or else fetch_process will raise an error
@@ -93,9 +85,6 @@ module Wrapi
                 error_handling_proc.call(fp)
               end
             end
-##### /not implemented
-
-
           end
         end
       end# end of while loop
@@ -104,7 +93,12 @@ module Wrapi
     end
 
 
-    def register_error_handler(err_type, proc)
+    def register_error_handler(err_type, proc=nil, &handling_blk)
+      if proc.nil? && !block_given?
+        raise ArgumentError, "Must either pass in a proc or a handling block"
+      end
+      proc = proc || handling_blk
+
       @error_handlers[err_type] = proc
     end
 
@@ -130,7 +124,5 @@ module Wrapi
 
       return arr.first.body
     end
-
-
   end
 end

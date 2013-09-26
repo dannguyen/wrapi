@@ -67,9 +67,4 @@ describe "Wrapi::Wrangler client setup" do
   end
 
 
-
-
-
-
-
 end

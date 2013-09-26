@@ -66,6 +66,7 @@ GEM
     rspec-mocks (2.14.3)
     simple_oauth (0.2.0)
     slop (3.4.6)
+    timecop (0.6.3)
     twitter (4.8.1)
       faraday (~> 0.8, < 0.10)
       multi_json (~> 1.0)
@@ -84,4 +85,5 @@ DEPENDENCIES
   pry
   rdoc (~> 3.12)
   rspec (~> 2.14.0)
+  timecop
   twitter

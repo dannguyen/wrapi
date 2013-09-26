@@ -6,6 +6,7 @@ group :development do
   gem "jeweler", "~> 1.8.4"
   gem "pry"
   gem "rdoc", "~> 3.12"
+  gem 'timecop'
 end
 
 group :test do 

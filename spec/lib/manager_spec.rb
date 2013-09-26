@@ -90,6 +90,19 @@ describe "Wrapi::Manager" do
 
         expect(@manager.get_error_handler(StandardError)).to eq @handler
       end
+
+      # this test is a bit iffy
+      it 'should allow us to register errors with a block' do 
+        @manager.register_error_handler(NoMethodError) do |x|
+          true
+        end
+      end
+
+      # 
+      it 'should allow us to register errors with a block' do 
+        expect{ @manager.register_error_handler(NoMethodError)  }.to raise_error ArgumentError
+      end
+
     end
   end
 

@@ -11,13 +11,16 @@ module Wrapi
 
     def initialize(client_instance, process_name, opts={})
       set_client(client_instance)
-      @errors_collection = []
-      @caught_error = nil
       @process_name = process_name
       @iterations = 0
       @options = Hashie::Mash.new(opts)
       @latest_response = nil
 
+      @errors_collection = []
+      @caught_error = nil
+
+      # Passing in the arguments from Manager's method   
+     
       @arguments = @options[:arguments] || []
       raise ArgumentError, ":arguments needs to be an array, not a #{@arguments.class}" unless @arguments.is_a?(Array)
 
@@ -106,10 +109,6 @@ module Wrapi
     end
 
 
-
-
-
-
     def transcribe(str)
       return if @transcript.nil?
       @transcript.puts str
@@ -161,8 +160,10 @@ module Wrapi
 
 
 
-    def error_count(err_type = nil)
-      @errors_collection.size
+    def error_count(err_klass = nil)      
+      arr = err_klass.nil? ? @errors_collection : @errors_collection.select{|e| e.kind_of?(err_klass)}
+      
+      return arr.size
     end
 
     private

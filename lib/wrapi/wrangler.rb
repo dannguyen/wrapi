@@ -12,9 +12,11 @@ module Wrapi
       extend Forwardable
 
       # hello bi-directional knowledge!
-      def_delegators :@manager, :has_clients?, :bare_clients, :clients, 
-        :fetch_single, :fetch_batch, :fetch,
-        :register_error_handler
+      def_delegators :@manager, 
+                        :add_clients,
+                        :has_clients?, :bare_clients, :clients, 
+                        :fetch_single, :fetch_batch, :fetch,
+                        :register_error_handler, :get_error_handler
     end
 
 
@@ -65,7 +67,7 @@ module Wrapi
     end
 
     def initialize_client(credential_unit)
-      
+      credential_unit
     end
 
   end

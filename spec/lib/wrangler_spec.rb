@@ -1,13 +1,5 @@
 require 'spec_helper'
 
-class AwesomeApeWrangler 
-  include Wrapi::Wrangler
-
-  def register_error_handling
-    register_error_handler(LocalJumpError, ->(f_process, fetcher_instance ){ return false })
-  end
-end
-
 describe 'Wrapi::Wrangler' do 
 
 
@@ -38,4 +30,15 @@ describe 'Wrapi::Wrangler' do
   
 end
 
+
+
+
+
+class AwesomeApeWrangler 
+  include Wrapi::Wrangler
+
+  def register_error_handling
+    register_error_handler(LocalJumpError, ->(f_process, fetcher_instance ){ return false })
+  end
+end
 

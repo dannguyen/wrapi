@@ -1,4 +1,8 @@
 # end to end testing with a TimedClient
+# Stub classes are defined at the bottom
+
+# Makes sure error handling and recovery works
+
 require 'spec_helper'
 module Wrapi
   describe 'Wrangler end-to-end with TimedClient' do    
@@ -121,7 +125,7 @@ end
 
 
 
-
+#########################################################################################
 
 class TimedClient
   def initialize(config={})

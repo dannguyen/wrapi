@@ -36,12 +36,12 @@ module Wrapi
 
     def initialize
       @fetcher = Fetcher.new
-      register_error_handling
+      register_error_handlers
     end
 
     # Public: Wraps the private individual error handling routines
     # abstract method
-    def register_error_handling
+    def register_error_handlers
       # define in mixin
     end
 

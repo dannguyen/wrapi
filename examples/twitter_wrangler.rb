@@ -51,7 +51,7 @@ class TwitterWrangler
 
 
 
-  def register_error_handling
+  def register_error_handlers
 
     proc = ->(f_process, the_fetcher) do 
       if f_process.error_count < 1      

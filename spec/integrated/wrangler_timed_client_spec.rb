@@ -174,7 +174,7 @@ class TimedWrangler
     @fetcher.current_process_client
   end
 
-  def register_error_handling
+  def register_error_handlers
     register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetcher, error|
 
       # returns true/false

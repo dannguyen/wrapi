@@ -15,7 +15,7 @@ module Wrapi
     end
 
     def add_client(ct)
-      raise ArgumentError, "Only ManagedClients can be added, not #{ct.class}" unless ct.is_a?( ManagedClient ) 
+      raise ArgumentError, "Only ManagedClients can be added, not #{ct.class}" unless ct.kind_of?( Wrapi::ManagedClient ) 
       @_queue << ct 
 
       nil
@@ -45,6 +45,10 @@ module Wrapi
 
     def empty?
       @_queue.empty?
+    end
+
+    def has_clients?
+      !empty?
     end
 
     def size

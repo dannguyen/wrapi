@@ -83,16 +83,14 @@ module Wrapi
     context 'batch fetches' do 
        before(:each) do 
         @wrangler = TimedWrangler.new 
-        @wrangler.register_error_handler TimedClient::NotEnoughTimeElapsed do |f,m|
-                                            client = f.client 
+        @wrangler.register_error_handler TimedClient::NotEnoughTimeElapsed do |fetcher, err|
+                                            client = fetcher.current_process_client
                                             sec = client.seconds_until_next_call
                                             # basically this is a sleep command
                                             Timecop.travel(sec + 1)
 
                                             client.ready_for_call?
-                                          end
-
-        
+                                          end        
        end 
 
 
@@ -171,23 +169,15 @@ class TimedWrangler
   end
 
   def register_error_handling
-    register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetch_process, fetcher|
+    register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetcher, error|
       # replace client
-      new_client =  fetcher.find_next_client(fetch_process.client){|c| c.ready_for_call? }
-      # true or false
-      boolean_to_return = case 
-      when new_client
-        fetch_process.set_client(new_client)
-        true
-      else
-        false
-      end
 
-
-      boolean_to_return
+      # returns true/false
+      fetcher.switch_to_new_client!{|c| c.ready_for_call? }
     end
   end
 end
+
 
 
 

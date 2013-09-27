@@ -31,6 +31,54 @@ describe "Wrapi::Fetcher" do
     end
   end
 
+
+  describe '#has_process? and #current_process_client' do 
+    before(:each) do 
+      @client = double('a client')
+      @client.stub(:foo){ 'UP!'}
+
+      @fetcher.add_clients(@client)
+    end
+    
+    context 'initial state' do  
+
+      it 'doesnt #has_process? yet' do 
+        expect(@fetcher.has_process?).to be_false
+      end
+
+      it '#current_process_client is nil until process starts' do 
+        expect(@fetcher.current_process_client).to be_nil
+      end
+    end
+
+    context 'after process runs' do 
+      before(:each) do 
+         @fetcher.fetch(:foo)
+      end
+
+      it 'now #has_process?' do 
+        expect(@fetcher.has_process?).to be_true
+      end
+
+      it 'now has a #current_process_client' do 
+        expect(@fetcher.current_process_client).to eq @fetcher.current_process.client
+      end
+
+      context 'delegates methods to #current_process' do 
+        it 'should have #iterations' do 
+          expect(@fetcher.current_process_iterations).to eq 1
+        end
+
+        it 'should have #latest_response' do 
+          expect(@fetcher.current_process_latest_response).to eq @fetcher.current_process.latest_response
+        end
+      end
+
+
+
+    end
+  end
+
   context 'wrap in managed clients' do 
     before(:each) do 
       @client = double()

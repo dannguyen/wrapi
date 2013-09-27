@@ -20,4 +20,12 @@ describe 'delegation' do
     @managed_client.call_the_api
   end
 
+  it 'should keep @last_call_timestamp' do 
+    t = Time.now
+    @managed_client.call_the_api
+    Timecop.travel(Time.now + 1000)
+
+    expect(@managed_client.last_call_timestamp).to be_within(1001).of Time.now
+  end
+
 end

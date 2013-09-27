@@ -1,4 +1,3 @@
-require 'active_support/core_ext'
 require 'hashie'
 
 module Wrapi
@@ -9,14 +8,16 @@ module Wrapi
       class_attribute :list_of_handled_errors
       attr_reader :credentials
 
-      extend Forwardable
+
 
       # hello bi-directional knowledge!
-      def_delegators :@fetcher, 
-                        :add_clients,
+      # TODO: Wrangler should be concerned only with a pool of Fetchers, not clients
+      # for now, a Wrangler is responsible for one fetcher
+      delegate :add_clients,
                         :has_clients?, :bare_clients, :clients, 
                         :fetch_single, :fetch_batch, :fetch,
-                        :register_error_handler, :get_error_handler
+                        :register_error_handler, :get_error_handler,
+                          :to => :@fetcher
     end # end included
 
 
@@ -75,29 +76,3 @@ module Wrapi
 end
 
 require_relative 'fetcher' 
-
-
-
-
-
-      # def handle_error(err_klass, &blk)
-      #   unless err_klass < Exception
-      #     raise ArgumentError, "Please pass in an Exception/Error class, not a #{err_klass}"
-      #   end        
-
-      #   unless block_given? && blk.arity == 1
-      #     raise LocalJumpError, 'Need to pass a block in with 1 argument'
-      #   end
-
-      #   handled_errors[err_klass] = Hashie::Mash.new(handling: blk) 
-      # end
-
-
-      # def handle_rate_limited_error
-
-      # end
-
-
-      # def handled_errors
-      #   self.list_of_handled_errors ||= Hashie::Mash.new
-      # end

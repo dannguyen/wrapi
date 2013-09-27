@@ -41,14 +41,12 @@ describe "Wrapi::Wrangler client setup" do
         wrangler.load_credentials_and_initialize_clients(nil)
         expect(wrangler.has_clients?).to be_false
       end
-
-
     end
   end
 
 
-  context 'actual defined Wrangler' do 
 
+  context 'actual defined Wrangler' do 
     it 'should have a queue of clients' do 
       wrangler = ConcreteWrangler.new
       wrangler.load_credentials_and_initialize_clients('hello world')

@@ -3,10 +3,13 @@ require 'delegate'
 module Wrapi
   class ManagedClient < SimpleDelegator
 
-    attr_reader :last_call_timestamp
+    attr_reader :latest_call_timestamp, :call_count
+    include Wrapi::ErrorCollector
 
     def initialize(client)
       @client = client 
+      @call_count = 0
+
       super(@client)
     end
 
@@ -19,20 +22,35 @@ module Wrapi
       true # just to keep this from being delegated to @client
     end
 
+    def successful_call_count
+      @call_count - error_count
+    end
+
+    def seconds_elapsed_since_latest_call
+      Time.now.to_i - @latest_call_timestamp.to_i 
+    end
+
+
+
+    def send_fetch_call(process_name, *arguments )
+      before_call
+      begin
+        resp = @client.send process_name, *arguments
+      rescue => err 
+        log_error(err)
+        raise err
+      else
+
+        return resp
+      end
+    end
+
+    private
 
     def before_call
-      @last_call_timestamp = Time.now 
+      @latest_call_timestamp = Time.now 
+      @call_count += 1
     end
-
-    def method_missing(name, *args, &block)
-      before_call
-      @client.send name, *args, &block
-    end
-
-    def respond_to_missing?(name, include_private = false)
-      @client.respond_to_missing?(name) or super
-    end
-
 
   end
 end

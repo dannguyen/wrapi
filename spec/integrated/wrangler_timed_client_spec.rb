@@ -30,7 +30,8 @@ module Wrapi
         end
 
         it 'should succeed on first attempt' do  
-          expect(@wrangler.fetch_single_api).to eq "Content: 200; Call count: 1"
+          @wrangler.fetch_single_api
+          expect( @wrangler.annoying_reach_for_current_client.successful_call_count).to eq 1
         end
 
         it 'should fail on second attempt' do 
@@ -44,8 +45,9 @@ module Wrapi
           expect{ @wrangler.fetch_single_api }.to raise_error TimedClient::NotEnoughTimeElapsed
           # just wait a little longer...
           Timecop.travel(Time.now + 100)
+          @wrangler.fetch_single_api
 
-          expect(@wrangler.fetch_single_api).to eq "Content: 200; Call count: 2"
+          expect( @wrangler.annoying_reach_for_current_client.successful_call_count).to eq 2
         end
       end
 
@@ -57,7 +59,7 @@ module Wrapi
         it 'should automatically switch to second client' do 
           @wrangler.fetch_single_api
           # second client should only have been called once
-          expect(@wrangler.fetch_single_api).to eq "Content: 200; Call count: 1"
+          expect(@wrangler.annoying_reach_for_current_client.successful_call_count).to eq 1
         end
 
         it 'should bubble error up if no more clients' do 
@@ -72,7 +74,8 @@ module Wrapi
           @wrangler.fetch_single_api
           Timecop.travel(Time.now + 900)
 
-          expect(@wrangler.fetch_single_api).to eq "Content: 200; Call count: 2"
+          @wrangler.fetch_single_api
+          expect(@wrangler.annoying_reach_for_current_client.successful_call_count).to eq 2
         end
       end
 
@@ -107,7 +110,7 @@ module Wrapi
           end
 
           # should execute 3 times
-          expect(resp_array.last).to eq "Content: 200; Call count: 3"
+          expect(@wrangler.annoying_reach_for_current_client.successful_call_count).to eq 3
           expect(Time.now - start_time).to be_within(5).of(100 * 2)
        end
 
@@ -127,7 +130,7 @@ end
 
 class TimedClient
   def initialize(config={})
-    @last_call_timestamp = nil
+    @timestamp_of_last_call = nil
     @calls_made = 0
 
     @seconds_to_wait_before_next_call = config[:wait] || 0
@@ -137,16 +140,15 @@ class TimedClient
     if !ready_for_call?
       raise NotEnoughTimeElapsed, "Must wait #{seconds_until_next_call}"
     else
-      @last_call_timestamp = Time.now
-      @calls_made += 1
-      body = "Content: 200; Call count: #{@calls_made}"
+      @timestamp_of_last_call = Time.now
+      body = "Content: 200"
     end
 
     return body
   end
 
   def time_elapsed
-    Time.now.to_i - @last_call_timestamp.to_i 
+    Time.now.to_i - @timestamp_of_last_call.to_i 
   end
 
   def ready_for_call?
@@ -168,9 +170,12 @@ class TimedWrangler
     fetch_single(:call_api) 
   end
 
+  def annoying_reach_for_current_client
+    @fetcher.current_process_client
+  end
+
   def register_error_handling
     register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetcher, error|
-      # replace client
 
       # returns true/false
       fetcher.switch_to_new_client!{|c| c.ready_for_call? }

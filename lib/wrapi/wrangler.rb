@@ -18,6 +18,9 @@ module Wrapi
                         :fetch_single, :fetch_batch, :fetch,
                         :register_error_handler, :get_error_handler,
                           :to => :@fetcher
+
+
+
     end # end included
 
 
@@ -75,4 +78,5 @@ module Wrapi
   end
 end
 
+require_relative 'error_collector'
 require_relative 'fetcher' 

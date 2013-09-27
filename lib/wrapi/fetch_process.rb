@@ -4,6 +4,7 @@ require 'pry'
 module Wrapi
   class FetchProcess
 
+    include Wrapi::ErrorCollector
 
     attr_reader :mode, :arguments, :process_name
     attr_reader :latest_response, :iterations
@@ -16,8 +17,7 @@ module Wrapi
       @options = Hashie::Mash.new(opts)
       @latest_response = nil
 
-      @errors_collection = []
-      @caught_error = nil
+     
 
       # Passing in the arguments from Fetcher's method   
      
@@ -156,39 +156,13 @@ module Wrapi
     end
     
 
-    def unfixed_error?
-      !@caught_error.nil?
-    end
-
-
-
-    def error_count(err_klass = nil)      
-      arr = err_klass.nil? ? @errors_collection : @errors_collection.select{|e| e.kind_of?(err_klass)}
-      
-      return arr.size
-    end
-
     private
 
 
-    def log_error(err)
-      @errors_collection << err
-    end
-
-    def clear_error!
-      @caught_error = nil
-    end
-
-    def set_error(err)
-      @caught_error = err
-      log_error(@caught_error)
-
-      @caught_error
-    end
 
     # Internal: Perform the specified client operation
     def perform_client_operation
-      @managed_client.send( process_name, *arguments )
+      @managed_client.send_fetch_call( process_name, *arguments )
     end
 
     # Internal: A poorly named method that obfuscates that this is the Proc passed in to 

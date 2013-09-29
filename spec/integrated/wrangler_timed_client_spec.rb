@@ -176,7 +176,6 @@ class TimedWrangler
 
   def register_error_handlers
     register_error_handler( TimedClient::NotEnoughTimeElapsed) do |fetcher, error|
-
       # returns true/false
       fetcher.switch_to_new_client!{|c| c.ready_for_call? }
     end

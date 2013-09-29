@@ -3,6 +3,8 @@ require 'twitter'
 require 'hashie'
 require 'andand'
 
+require 'active_support/core_ext/hash/slice'
+
 require_relative '../lib/wrapi'
 
 
@@ -29,16 +31,19 @@ class TwitterWrangler
 
   # return an instantiated client
   def initialize_client(cred)
-    Twitter::Client.new(cred)
+    Twitter::REST::Client.new(cred)
   end
 
   # map loaded_creds into an array
   def parse_credentials(loaded_creds)
     arr = []
     loaded_creds.each do |creds|
-      app_hash = creds.dup.keep_if{|k,v| ['consumer_key', 'consumer_secret'].include?(k)}
-
-      arr += creds['tokens'].map{ |token|  token.merge(app_hash).symbolize_keys }
+      app_hash = creds.dup.slice('consumer_key', 'consumer_secret') 
+      arr += creds['tokens'].map do |token|  
+        oauth_token = token.slice('oauth_token', 'oauth_token_secret')
+       
+        oauth_token.merge(app_hash).symbolize_keys
+      end 
     end
 
     return arr
@@ -50,28 +55,12 @@ class TwitterWrangler
   end
 
 
-
   def register_error_handlers
-
-    proc = ->(f_process, the_fetcher) do 
-      if f_process.error_count < 1      
-        sleep 10
-        return true
-      else
-        return false
-      end
+    register_error_handler( Twitter::Error::TooManyRequests ) do |_fetcher, error|
     end
-
-    register_error_handler( Twitter::Error::TooManyRequests, proc)
   end
 
 
-
-
-
-
-
-################# SINGLE OPERATIONS
 
 
   # Public: fetch a user profile given a single user.id or screen_name
@@ -100,8 +89,6 @@ class TwitterWrangler
   
     return arr.first
   end
-
-
 
 
   # Public: fetch the information for one list
@@ -162,9 +149,6 @@ class TwitterWrangler
   end
 
 
-
-
-
   def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
 
     fetch_options = {}
@@ -193,7 +177,36 @@ class TwitterWrangler
       puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
     end
 
+    @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 
+  end
 
+
+  def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
+    fetch_options = {}
+
+    opts = Hashie::Mash.new(twitter_opts).tap do |o|
+      o[:count] ||= MAX_COUNT_OF_TWEETS_BATCH
+      o[:include_rts] ||= true 
+      o[:trim_user] ||= true 
+      o[:since_id] ||= 1 
+      o[:max_id] ||= MAX_TWEET_ID
+    end
+
+    fetch_options[:arguments] = [user_id, opts]
+
+    fetch_options[:while_condition] = ->(loop_state, args) do 
+      o = args[1]
+      o[:max_id] > o[:since_id]
+    end
+
+    fetch_options[:response_callback] = ->(loop_state, args) do 
+      opts = args[1]
+      if tweets_array = loop_state.latest_body
+        opts[:max_id] =  tweets_array.last.andand.id.to_i - 1
+      end
+
+      puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
+    end
 
     @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 
   end
@@ -253,35 +266,27 @@ class TwitterWrangler
 
 
 
+# # from api_fetchee
+
+#     def determine_rate_limit_timestamp
+#        if error_object.is_a?(Twitter::Error::TooManyRequests)
+#           # Twitter::Error::TooManyRequests has a .rate_limit method
+#           x_seconds = error_object.rate_limit.attrs["x-rate-limit-reset"].to_i
+#           return Time.at x_seconds
+#        else # 
+#           return Time.now + DEFAULT_TIMEOUT_SECONDS 
+#        end
+#     end
 
 end
 
 
 
-#################################
-#### Error handling
-
-
-#  handle_error Twitter::Error::NotFound 
-
-#  end
-
-
-
-=begin
-  define_rate_errors(Twitter::RateLimit, Twitter::Something) do |fetcher, error|
-
-    fetcher.remove_client(client)
-    fetcher.find_new_client
-
-    true
-  end
-
-=end
 
 
 
 
+##############################################################
 ## example usage
 =begin
 require './examples/twitter_wrangler'
@@ -298,7 +303,7 @@ end
 follower_ids = []
 t.fetch_batch_follower_ids( 'dancow' ) do |resp|
   resp.on_success do |body|
-    follower_ids += body.collection
+    follower_ids += body.to_a
   end
 end
 

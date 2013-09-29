@@ -7,10 +7,11 @@ group :development do
   gem "pry"
   gem "rdoc", "~> 3.12"
   gem 'timecop'
+  gem 'webmock'
 end
 
 group :test do 
-  gem 'twitter'
+  gem 'twitter', "~> 5.0.0rc.1"
   gem 'oj'
 end
 

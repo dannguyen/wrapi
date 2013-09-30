@@ -67,7 +67,7 @@ class TwitterWrangler
   def register_error_handlers
     register_error_handler( Twitter::Error::TooManyRequests ) do |_fetcher, error|
 
-      false # stubbing for now
+      _fetcher.switch_to_new_client!
     end
   end
 
@@ -215,8 +215,12 @@ class TwitterWrangler
         opts[:max_id] =  tweets_array.last.andand.id.to_i - 1
       end
 
-      puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
+#      puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
     end
+
+
+    fetch_options[:transcript] = STDOUT
+
 
     @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 
   end
@@ -228,6 +232,7 @@ class TwitterWrangler
     fetcher_args[:arguments] << Hashie::Mash.new(twitter_opts).tap{ |o|
       o[:cursor] ||= - 1
     }
+
 
     fetcher_args[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
     fetcher_args[:response_callback] = ->(loop_state, args){ 

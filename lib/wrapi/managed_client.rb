@@ -36,7 +36,6 @@ module Wrapi
       before_call
       begin
         resp = @client.send process_name, *arguments
-#        binding.pry
       rescue => err 
         log_error(err)
         raise err
@@ -49,6 +48,7 @@ module Wrapi
     private
 
     def before_call
+      puts "before call\n\n"
       @latest_call_timestamp = Time.now 
       @call_count += 1
     end

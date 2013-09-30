@@ -18,4 +18,4 @@ end
 gem 'hashie'
 gem 'andand'
 gem 'activesupport', '~> 3.2.14'
-
+gem 'awesome_print'

@@ -1,5 +1,6 @@
 require 'hashie'
 require 'pry'
+require 'awesome_print'
 
 module Wrapi
   class FetchProcess
@@ -53,8 +54,7 @@ module Wrapi
     # runs @managed_client.perform
     # this should probably be false
     def execute!(&blk) 
-      transcribe("sending :#{@process_name} with :arguments => #{@arguments}") #todo: refactor
-
+      transcribe
       begin 
         a_response = perform_client_operation
       rescue StandardError => err
@@ -110,10 +110,11 @@ module Wrapi
       perform_response_callback
     end
 
-
-    def transcribe(str)
+    # bad #ignoring @transcript IO for now
+    def transcribe(str='')
       return if @transcript.nil?
-      @transcript.puts str
+      ap(@process_name)
+      ap(@arguments )
     end
 
 

@@ -59,48 +59,86 @@ describe "Rate limiting" do
 
 
     context 'rate limit error response' do 
-      it 'should raise a Twitter::Error::TooManyRequests error' do 
-        stub_request( :get, 
-                      'https://api.twitter.com/1.1/statuses/user_timeline.json').with( 
-                      :query => hash_including({:screen_name => @screen_name}
-                    )).to_return(@rate_error_response)
 
-        expect{ @wrangler.fetch_batch_user_timeline(@screen_name) }.to raise_error Twitter::Error::TooManyRequests
+      context 'pre-fab error response' do 
+        it 'should raise a Twitter::Error::TooManyRequests error' do 
+          stub_request( :get, 
+                        'https://api.twitter.com/1.1/statuses/user_timeline.json').with( 
+                        :query => hash_including({:screen_name => @screen_name}
+                      )).to_return(@rate_error_response)
+
+          expect{ @wrangler.fetch_batch_user_timeline(@screen_name) }.to raise_error Twitter::Error::TooManyRequests
+        end
+      end
+
+
+      context 'error response in the middle of the requests' do 
+        
+          # this is a terrible test. Will refactor after figuring out WebMock
+          before(:each) do 
+            @current_count = 0
+            @count_to_break_on = 3  # break on the 3rd request
+
+            stub_request( :get, 
+               Regexp.new('https://api.twitter.com/1.1/statuses/user_timeline.json')
+              ).
+              to_return{ |req|
+                max_id = req.uri.query_values['max_id']
+
+                if fname = TWEET_FIXTURES.find{|f| f =~ Regexp.new(max_id) }
+                  body_json = open(fname).read
+                else
+                  body_json = "[]"
+                end
+
+                @current_count += 1
+                puts "On #{@current_count} try"
+
+                # artificial break here:
+
+                if @current_count == @count_to_break_on                   
+                  @rate_error_response
+                else
+                  h = ({
+                    status: 200,
+                    headers: {:content_type => "application/json; charset=utf-8"},
+                    body: body_json
+                  })        
+                end                
+              }
+          end
+
+
+
+            it 'should fail without another client' do 
+              # done with setup, ugh
+              expect{ @wrangler.fetch_batch_user_timeline(@screen_name, max_id: 383969384785805311) }.to raise_error Twitter::Error::TooManyRequests  
+            end
+
+            it 'should failover to second client' do 
+              @client2 = Twitter::REST::Client.new(:consumer_key => "CK", :consumer_secret => "CS", :access_token => "AT", :access_token_secret => "AS")
+
+              # note, rate-limit isn't checked here in the second client
+              @wrangler.add_clients(@client2)
+              @wrangler.fetch_batch_user_timeline(@screen_name, max_id: 383969384785805311)
+
+              clients = @wrangler.clients
+              expect(clients[0].call_count).to eq 3
+              expect(clients[0].error_count).to eq 1
+              expect(clients[0].error_count(Twitter::Error::TooManyRequests)).to eq 1
+
+              expect(clients[1].call_count).to eq 5
+              expect(clients[1].error_count).to eq 0
+
+              puts "This is where we need to figure out how to get error information from client"
+              binding.pry
+            end
+
+
+
       end
     end
 
-
-    context 'no rate limit problem' do 
-        
-        it 'should stub things' do 
-           stub_request( :get, 
-                         Regexp.new('https://api.twitter.com/1.1/statuses/user_timeline.json')
-                        ).# with{ |req| 
-                          # max_id = req.uri.query_values['max_id']
-                          #max_id =~  /^(38\d{16})/ }.
-                        to_return{ |req|
-                          max_id = req.uri.query_values['max_id']
-
-                          if fname = TWEET_FIXTURES.find{|f| f =~ Regexp.new(max_id) }
-                            body_json = open(fname).read
-                          else
-                            body_json = "[]"
-                          end
-
-                          h = ({
-                            status: 200,
-                            headers: {:content_type => "application/json; charset=utf-8"},
-                            body: body_json
-                          })
-
-                          
-
-                        }
-
-
-           json =  @wrangler.fetch_batch_user_timeline(@screen_name,  { max_id: 383969384785805311 } )
-        end
-      end
 
   end
 end

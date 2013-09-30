@@ -24,6 +24,15 @@ class TwitterWrangler
 
   MAX_COUNT_OF_TWEETS_BATCH = 200
 
+  DEFAULT_QUERIES = {
+    :user_timeline => {
+      count: MAX_COUNT_OF_TWEETS_BATCH,
+      include_rts: true,
+      trim_user: true, 
+      since_id: 1, 
+      max_id: MAX_TWEET_ID
+    } 
+  }
 
 
 #################################
@@ -57,6 +66,8 @@ class TwitterWrangler
 
   def register_error_handlers
     register_error_handler( Twitter::Error::TooManyRequests ) do |_fetcher, error|
+
+      false # stubbing for now
     end
   end
 
@@ -154,11 +165,10 @@ class TwitterWrangler
     fetch_options = {}
 
     opts = Hashie::Mash.new(twitter_opts).tap do |o|
-      o[:count] ||= MAX_COUNT_OF_TWEETS_BATCH
-      o[:include_rts] ||= true 
-      o[:trim_user] ||= true 
-      o[:since_id] ||= 1 
-      o[:max_id] ||= MAX_TWEET_ID
+      # tk: refactor
+      DEFAULT_QUERIES[:user_timeline].each_pair do |d_key, d_value|
+        o[d_key] ||= d_value
+      end
     end
 
     fetch_options[:arguments] = [user_id, opts]

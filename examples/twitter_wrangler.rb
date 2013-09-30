@@ -310,6 +310,33 @@ t.fetch_batch_user_timeline( 'dancow' ) do |resp|
 end
 
 
+# generate fixture data
+
+
+fdir = "./"
+max_iterations = 5
+_x = 0
+
+max_id = 383969384785805311
+t.fetch_batch_user_timeline( 'USAgov',  {count: 1 , max_id: max_id}  ) do |resp|  
+  tweets_array = resp.body
+   # _max_id =  tweets_array.last.andand.id.to_i - 1
+   fname = "#{max_id}.json" # save the max_id that resulted in this
+   
+   fpath = File.join(fdir, fname)
+   puts fpath
+   File.write(fpath, tweets_array.to_json)
+  
+  max_id =  tweets_array.last.andand.id.to_i - 1
+  _x += 1 
+
+  break if _x > max_iterations
+
+end
+
+
+
+
 follower_ids = []
 t.fetch_batch_follower_ids( 'dancow' ) do |resp|
   resp.on_success do |body|

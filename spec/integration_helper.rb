@@ -9,7 +9,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'examples'))
 require 'twitter_wrangler'
 
 
-
+TWEET_FIXTURES = Dir.glob( File.join( File.expand_path('../fixtures/tweets', __FILE__), '*.json' ))
 
 ### helpers for Twitter testing
 

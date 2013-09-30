@@ -45,32 +45,64 @@ describe "Rate limiting" do
     before(:each) do 
       @wrangler = TwitterWrangler.new
       @wrangler.add_clients(@client)
-      @query_string = "https://api.twitter.com/1.1/statuses/user_timeline.json?count=200&include_rts=true&max_id=4611686018427387903&screen_name=ev&since_id=1&trim_user=true"
+      @screen_name = 'USAgov'
+#      @query_string = "https://api.twitter.com/1.1/statuses/user_timeline.json?count=200&include_rts=true&max_id=4611686018427387903&screen_name=ev&since_id=1&trim_user=true"
 
-      @error_response = {
+      @rate_error_response = {
         :status => 429, :body => ({content: "Rate limit exceeded"}.to_json),
         :headers => {:content_type => "application/json; charset=utf-8", 
           "x-rate-limit-reset" => @reset_time.to_i.to_s }
       }
 
-      @success_response = {
-        :status => 429, :body => ({content: "Rate limit exceeded"}.to_json),
-        :headers => {:content_type => "application/json; charset=utf-8", 
-          "x-rate-limit-reset" => @reset_time.to_i.to_s }        
-      }
-
-      stub_request(:get, @query_string).to_return(@error_response)
+   
     end
 
 
     context 'rate limit error response' do 
       it 'should raise a Twitter::Error::TooManyRequests error' do 
-        expect{ @wrangler.fetch_batch_user_timeline('ev') }.to raise_error Twitter::Error::TooManyRequests
+        stub_request( :get, 
+                      'https://api.twitter.com/1.1/statuses/user_timeline.json').with( 
+                      :query => hash_including({:screen_name => @screen_name}
+                    )).to_return(@rate_error_response)
+
+        expect{ @wrangler.fetch_batch_user_timeline(@screen_name) }.to raise_error Twitter::Error::TooManyRequests
       end
     end
+
+
+    context 'no rate limit problem' do 
+        
+        it 'should stub things' do 
+           stub_request( :get, 
+                         Regexp.new('https://api.twitter.com/1.1/statuses/user_timeline.json')
+                        ).# with{ |req| 
+                          # max_id = req.uri.query_values['max_id']
+                          #max_id =~  /^(38\d{16})/ }.
+                        to_return{ |req|
+                          max_id = req.uri.query_values['max_id']
+
+                          if fname = TWEET_FIXTURES.find{|f| f =~ Regexp.new(max_id) }
+                            body_json = open(fname).read
+                          else
+                            body_json = "[]"
+                          end
+
+                          h = ({
+                            status: 200,
+                            headers: {:content_type => "application/json; charset=utf-8"},
+                            body: body_json
+                          })
+
+                          
+
+                        }
+
+
+           json =  @wrangler.fetch_batch_user_timeline(@screen_name,  { max_id: 383969384785805311 } )
+        end
+      end
+
   end
-
-
 end
 
 

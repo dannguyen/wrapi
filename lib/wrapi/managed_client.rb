@@ -36,6 +36,7 @@ module Wrapi
       before_call
       begin
         resp = @client.send process_name, *arguments
+#        binding.pry
       rescue => err 
         log_error(err)
         raise err

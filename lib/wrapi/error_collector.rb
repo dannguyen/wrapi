@@ -18,16 +18,14 @@ module Wrapi
       return arr.size
     end
 
-
     def unfixed_error?
       !@caught_error.nil?
     end
 
 
-
-
     private 
     def log_error(err)
+      err.extend Wrapi::ErrorTag    
       errors_collection << err
     end
 
@@ -35,6 +33,7 @@ module Wrapi
       @caught_error = nil
     end
 
+    # tags error
     def set_error(err)
       @caught_error = err
       log_error(@caught_error)

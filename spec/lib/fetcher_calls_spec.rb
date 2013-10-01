@@ -169,12 +169,11 @@ describe 'Wrapi::Fetcher' do
         end
 
         it 'should print message to an IO object' do 
+          pending "Transcription is to be handled later"
           @io = StringIO.new
           @fetcher.fetch(:call_the_api, transcript: @io)
           expect(@io.string).to match(/:call_the_api with :arguments/)
         end
-
-
       end
 
 

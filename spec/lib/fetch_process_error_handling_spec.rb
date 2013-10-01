@@ -39,6 +39,7 @@ describe 'Wrapi::FetchProcess error_handling' do
         describe '#error_count by type' do 
           it 'should return error by kind and respect inheritance' do 
             expect(@process.error_count(StandardError)).to eq 1
+            
             expect(@process.error_count(NoMethodError)).to eq 1
 
             expect(@process.error_count(ArgumentError)).to eq 0

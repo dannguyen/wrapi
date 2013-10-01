@@ -190,5 +190,43 @@ describe 'Wrapi::FetchProcess' do
     end
 
 
+    describe '#serialize' do 
+      let(:a_client){ ManagedClient.new({}) }
+
+      before(:each) do 
+         @process = FetchProcess.new(a_client, :foo, arguments: [1,2,3])
+         @serial = @process.serialize
+      end
+
+      it 'should be a Hash' do 
+        expect(@serial).to be_a Hash
+      end
+
+      it 'should also be a Mash' do 
+        expect(@serial).to be_a Hashie::Mash
+      end
+
+      context 'key/values' do 
+        it 'should list arguments' do 
+          expect(@serial.arguments).to eq [1,2,3]
+        end
+
+        it 'should have @process_name' do 
+          expect(@serial.process_name).to eq :foo
+        end
+
+        it 'should have @iterations' do 
+          expect(@serial.iterations).to eq 0
+        end
+
+        it 'should match process @iterations when iterated' do
+          @process.proceed! 
+          expect(@process.serialize.iterations).to eq 1
+        end
+
+
+      end
+    end
+
   end
 end

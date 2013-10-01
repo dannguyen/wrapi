@@ -131,10 +131,7 @@ describe "Rate limiting" do
               expect(clients[1].error_count).to eq 0
 
               puts "This is where we need to figure out how to get error information from client"
-              binding.pry
             end
-
-
 
       end
     end

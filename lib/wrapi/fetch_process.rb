@@ -7,7 +7,7 @@ module Wrapi
 
     include Wrapi::ErrorCollector
 
-    attr_reader :mode, :arguments, :process_name
+    attr_reader :arguments, :process_name
     attr_reader :latest_response, :iterations
 
 
@@ -17,8 +17,6 @@ module Wrapi
       @iterations = 0
       @options = Hashie::Mash.new(opts)
       @latest_response = nil
-
-     
 
       # Passing in the arguments from Fetcher's method   
      
@@ -45,6 +43,15 @@ module Wrapi
     end
 
 
+    def serialize
+      Hashie::Mash.new(
+        process_name: @process_name,
+        iterations: @iterations, 
+        arguments: @arguments
+      )
+    end
+
+
     # Public: Allows the calling fetcher to replace the client
     def set_client(a_client_instance)
       raise ArgumentError, "first argument needs to be a ManagedClient, not a #{a_client_instance.class}" unless a_client_instance.is_a?(ManagedClient)
@@ -55,10 +62,14 @@ module Wrapi
     # this should probably be false
     def execute!(&blk) 
       transcribe
+      
       begin 
         a_response = perform_client_operation
-      rescue StandardError => err
+
+      rescue StandardError => err        
         set_error(err)
+        
+        err.wrapi_data = self.serialize        
         response_object = FetchedResponse.error(err)
       else
         response_object = FetchedResponse.success(a_response)
@@ -182,8 +193,6 @@ module Wrapi
     def increment_loop_state!
       @iterations += 1
     end
-
-
   end
 
 
@@ -198,10 +207,6 @@ module Wrapi
     end
   end
 
-
-  class ProcessingError < StandardError; end
-  class ImproperErrorHandling < ProcessingError; end
-  class ExecutingWhileFalseError < ProcessingError; end 
 
 
 end

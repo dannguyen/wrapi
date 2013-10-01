@@ -4,7 +4,14 @@ module Wrapi
   class ManagedClient < SimpleDelegator
 
     attr_reader :latest_call_timestamp, :call_count
+
+
     include Wrapi::ErrorCollector
+    # nil out several non-used methods
+    def clear_error!; puts "Warning, not supposed to be invoked for ManagedClient"; nil; end
+    def unfixed_error!; puts "Warning, not supposed to be invoked for ManagedClient"; nil; end
+    ###
+
 
     def initialize(client)
       @client = client 
@@ -48,7 +55,6 @@ module Wrapi
     private
 
     def before_call
-      puts "before call\n\n"
       @latest_call_timestamp = Time.now 
       @call_count += 1
     end

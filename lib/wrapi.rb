@@ -8,4 +8,5 @@ end
 
 include Wrapi
 require_relative 'wrapi/wrangler'
-require_relative 'wrapi/fetched_response'
+
+require_relative 'wrapi/error'

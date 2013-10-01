@@ -1,4 +1,6 @@
 require 'hashie'
+require 'logger'
+
 
 module Wrapi
   module Wrangler
@@ -7,6 +9,9 @@ module Wrapi
     included do 
       class_attribute :list_of_handled_errors
       attr_reader :credentials
+      attr_accessor :logger
+
+
 
 
 
@@ -34,8 +39,11 @@ module Wrapi
 
     def initialize
       @fetcher = Fetcher.new
+      @logger = STDOUT
       register_error_handlers
     end
+
+
 
     # Public: Wraps the private individual error handling routines
     # abstract method
@@ -73,10 +81,20 @@ module Wrapi
       credential_unit
     end
 
+
+    private
+    
+    def prepare_fetcher_arguments
+      m = Hashie::Mash.new 
+      m[:logger]  = @logger
+
+      return m 
+    end
+
   end
 end
 
-require_relative 'error'
-require_relative 'error_collector'
+
+
 require_relative 'fetcher' 
 

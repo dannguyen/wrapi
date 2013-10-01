@@ -219,7 +219,7 @@ class TwitterWrangler
     end
 
 
-    fetch_options[:transcript] = STDOUT
+    fetch_options[:logger] = STDOUT
 
 
     @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 

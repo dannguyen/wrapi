@@ -162,16 +162,16 @@ describe 'Wrapi::Fetcher' do
         end        
       end # 'yielding a block'
 
-      describe 'passing in a IO object via :transcript' do 
+      describe 'passing in a IO object via :logger' do 
 
-        it 'should raise ArgumentError if transcript is non-nil and does not respond to #puts' do 
-          expect{ @fetcher.fetch(:call_the_api, transcript: [404] )}.to raise_error ArgumentError
+        it 'should raise ArgumentError if :logger is non-nil and does not respond to #puts' do 
+          expect{ @fetcher.fetch(:call_the_api, logger: [404] )}.to raise_error ArgumentError
         end
 
         it 'should print message to an IO object' do 
           pending "Transcription is to be handled later"
           @io = StringIO.new
-          @fetcher.fetch(:call_the_api, transcript: @io)
+          @fetcher.fetch(:call_the_api, logger: @io)
           expect(@io.string).to match(/:call_the_api with :arguments/)
         end
       end

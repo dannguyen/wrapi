@@ -1,4 +1,5 @@
 require 'delegate'
+require_relative 'error_collector'
 
 module Wrapi
   class ManagedClient < SimpleDelegator

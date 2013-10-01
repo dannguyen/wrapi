@@ -1,6 +1,8 @@
 require 'hashie'
 require 'pry'
 require 'awesome_print'
+require_relative 'error_collector'
+require_relative 'fetched_response'
 
 module Wrapi
   class FetchProcess
@@ -23,8 +25,8 @@ module Wrapi
       @arguments = @options[:arguments] || []
       raise ArgumentError, ":arguments needs to be an array, not a #{@arguments.class}" unless @arguments.is_a?(Array)
 
-      @transcript = @options[:transcript]
-      raise ArgumentError, ":transcript must be an IO or nil, not #{@transcript.class}" unless @transcript.nil? || @transcript.respond_to?(:puts)
+      @logger = @options[:logger]
+      raise ArgumentError, ":logger must be an IO or nil, not #{@logger.class}" unless @logger.nil? || @logger.respond_to?(:puts)
 
       # define instance methods using passed-in procs
       # TODO: Refactor
@@ -68,7 +70,7 @@ module Wrapi
 
       rescue StandardError => err        
         set_error(err)
-        
+
         err.wrapi_data = self.serialize        
         response_object = FetchedResponse.error(err)
       else
@@ -121,11 +123,16 @@ module Wrapi
       perform_response_callback
     end
 
-    # bad #ignoring @transcript IO for now
-    def transcribe(str='')
-      return if @transcript.nil?
-      ap(@process_name)
-      ap(@arguments )
+    # bad #ignoring @logger IO for now
+    def transcribe(str=nil)
+      return if @logger.nil?
+
+      if str
+        @logger.send :ap, nil
+      else
+        log_hsh = {process_name: @process_name, arguments: @arguments, timestamp: Time.now}
+        @logger.send :ap, log_hsh, {sort_keys: false, limit: 20}
+      end
     end
 
 

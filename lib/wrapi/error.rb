@@ -3,6 +3,7 @@ module Wrapi
 
   module ErrorTag
     attr_accessor :wrapi_data
+    attr_accessor :timestamp
   end
   
 

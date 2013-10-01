@@ -123,7 +123,6 @@ module Wrapi
       perform_response_callback
     end
 
-    # bad #ignoring @logger IO for now
     def transcribe(str=nil)
       return if @logger.nil?
 

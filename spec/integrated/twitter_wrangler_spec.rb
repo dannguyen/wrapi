@@ -44,6 +44,8 @@ describe "Rate limiting" do
   context 'TwitterWrangler' do 
     before(:each) do 
       @wrangler = TwitterWrangler.new
+      @wrangler.logger = STDOUT
+
       @wrangler.add_clients(@client)
       @screen_name = 'USAgov'
 #      @query_string = "https://api.twitter.com/1.1/statuses/user_timeline.json?count=200&include_rts=true&max_id=4611686018427387903&screen_name=ev&since_id=1&trim_user=true"
@@ -130,7 +132,6 @@ describe "Rate limiting" do
               expect(clients[1].call_count).to eq 5
               expect(clients[1].error_count).to eq 0
 
-              puts "This is where we need to figure out how to get error information from client"
             end
 
       end
@@ -141,20 +142,3 @@ describe "Rate limiting" do
 end
 
 
-
-
-=begin
-  for status, exception in Twitter::Error.errors
-    for body in [nil, "error", "errors"]
-      context "when HTTP status is #{status} and body is #{body.inspect}" do
-        before do
-          body_message = '{"' + body + '":"Client Error"}' unless body.nil?
-          stub_get("/1.1/statuses/user_timeline.json").with(:query => {:screen_name => "sferik"}).to_return(:status => status, :body => body_message)
-        end
-        it "raises #{exception.name}" do
-          expect{@client.user_timeline("sferik")}.to raise_error exception
-        end
-      end
-    end
-  end  
-=end

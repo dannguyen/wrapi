@@ -39,7 +39,7 @@ module Wrapi
 
     def initialize
       @fetcher = Fetcher.new
-      @logger = STDOUT
+      @logger = nil
       register_error_handlers
     end
 
@@ -83,8 +83,8 @@ module Wrapi
 
 
     private
-    
-    def prepare_fetcher_arguments
+
+    def prepare_fetcher_options
       m = Hashie::Mash.new 
       m[:logger]  = @logger
 

@@ -5,15 +5,24 @@ module Wrapi
     included do 
     end
 
-
+    # returns a chrono-DESC sort of the errors array
     def errors_collection 
-      @_errors_collection ||= []
+      @_errors_array.sort_by{|e| e.timestamp }.reverse
+    end
 
-      @_errors_collection
+    
+    def errors_by_kind(err_klass)
+      err_klass.nil? ? errors_collection : errors_collection.select{|e| e.kind_of?(err_klass)}
+    end
+
+    def most_recent_error(err_klass = nil)
+
+      errors_by_kind(err_klass).sort_by{|e| e.timestamp }.reverse.first
+
     end
 
     def error_count(err_klass = nil)      
-      arr = err_klass.nil? ? errors_collection : errors_collection.select{|e| e.kind_of?(err_klass)}
+      arr =  errors_by_kind(err_klass)
       
       return arr.size
     end
@@ -24,9 +33,19 @@ module Wrapi
 
 
     private 
+
+    def collect_error(err)
+      @_errors_array ||= []
+      @_errors_array  << err 
+    end
+
+
     def log_error(err)
-      err.extend Wrapi::ErrorTag    
-      errors_collection << err
+      err.extend Wrapi::ErrorTag
+      err.timestamp = Time.now
+
+      collect_error(err)
+      err
     end
 
     def clear_error!

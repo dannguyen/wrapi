@@ -10,15 +10,13 @@ module Wrapi
       @_errors_array.sort_by{|e| e.timestamp }.reverse
     end
 
-    
+
     def errors_by_kind(err_klass)
       err_klass.nil? ? errors_collection : errors_collection.select{|e| e.kind_of?(err_klass)}
     end
 
     def most_recent_error(err_klass = nil)
-
-      errors_by_kind(err_klass).sort_by{|e| e.timestamp }.reverse.first
-
+      errors_by_kind(err_klass).first
     end
 
     def error_count(err_klass = nil)      

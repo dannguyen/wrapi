@@ -13,6 +13,7 @@ end
 group :test do 
   gem 'twitter', "~> 5.0.0rc.1"
   gem 'oj'
+  gem 'koala'
 end
 
 gem 'hashie'

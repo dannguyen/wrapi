@@ -21,8 +21,6 @@ class InstagramWrangler
   end
 
 
-
-
   #################################
   #### Initialization stuff
 

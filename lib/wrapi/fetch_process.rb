@@ -180,7 +180,7 @@ module Wrapi
 
     # Internal: Perform the specified client operation
     def perform_client_operation
-      @managed_client.send_fetch_call( process_name, *arguments )
+      @managed_client.send_fetch_call( process_name, *@arguments )
     end
 
     # Internal: A poorly named method that obfuscates that this is the Proc passed in to 

@@ -60,7 +60,7 @@ class TwitterWrangler
 
   # in this case, the object is an array of objects, each of which contains an array of :tokens
   def load_credentials()
-    JSON.parse open( File.expand_path('../twitter-creds.json', __FILE__) ){|f| f.read}
+    JSON.parse open( File.expand_path('../examples/creds/twitter-creds.json', __FILE__) ){|f| f.read}
   end
 
 

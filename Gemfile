@@ -14,6 +14,7 @@ group :test do
   gem 'twitter', "~> 5.0.0rc.1"
   gem 'oj'
   gem 'koala'
+  gem 'google-api-client'
 end
 
 gem 'hashie'

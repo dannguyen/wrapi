@@ -12,9 +12,6 @@ module Wrapi
       attr_accessor :logger
 
 
-
-
-
       # hello bi-directional knowledge!
       # TODO: Wrangler should be concerned only with a pool of Fetchers, not clients
       # for now, a Wrangler is responsible for one fetcher
@@ -42,7 +39,6 @@ module Wrapi
       @logger = nil
       register_error_handlers
     end
-
 
 
     # Public: Wraps the private individual error handling routines

@@ -47,7 +47,7 @@ describe 'Wrapi::Fetcher' do
         context 'within loop', true do 
           let(:lambda){ Proc.new do |fetch_process,args| 
                 args[0].probe(fetch_process,args)
-                fetch_process.iterations < 2 
+                fetch_process.iteration_count < 2 
               end
            }
 
@@ -81,7 +81,7 @@ describe 'Wrapi::Fetcher' do
       describe '#response_callback' do 
         let(:lambda){ Proc.new do |fetch_process,args| 
               args[0].probe(fetch_process, args)
-              fetch_process.iterations < 2 
+              fetch_process.iteration_count < 2 
             end
          }
 
@@ -112,8 +112,8 @@ describe 'Wrapi::Fetcher' do
             @probe.stub(:set_it){|a| a}            
 
             @callback = ->(fetch_process, args){  
-              args[0] = fetch_process.iterations  
-              puts "\n\n HEY\n fetch_process: #{fetch_process.iterations}" 
+              args[0] = fetch_process.iteration_count  
+              puts "\n\n HEY\n fetch_process: #{fetch_process.iteration_count}" 
               puts "args: #{args[0][:increments]}"
               puts "hash: #{binded_hash[:increments]}\n\n\n"
 
@@ -134,9 +134,9 @@ describe 'Wrapi::Fetcher' do
             }.to yield_with_args FetchedResponse
           end
 
-          it 'must yield as many times as there are iterations' do 
+          it 'must yield as many times as there are iteration_count' do 
             expect{ |b| 
-              @fetcher.fetch(:call_the_api, {while_condition: ->(x,y){ x.iterations < 2 }}, &b)
+              @fetcher.fetch(:call_the_api, {while_condition: ->(x,y){ x.iteration_count < 2 }}, &b)
             }.to yield_control.exactly(2).times 
           end
 

@@ -104,7 +104,7 @@ module Wrapi
 
           @wrangler.add_clients TimedClient.new( wait: 100 )
           @wrangler.fetch_batch(:call_api, 
-             while_condition: ->(fetch_process, args){ fetch_process.iterations < 3 }
+             while_condition: ->(fetch_process, args){ fetch_process.iteration_count < 3 }
           )   do  |resp|
             resp_array << resp.body
           end

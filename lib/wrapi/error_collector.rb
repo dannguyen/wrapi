@@ -7,7 +7,7 @@ module Wrapi
 
     # returns a chrono-DESC sort of the errors array
     def errors_collection 
-      @_errors_array.sort_by{|e| e.timestamp }.reverse
+      errors_array.sort_by{|e| e.timestamp }.reverse
     end
 
 
@@ -32,9 +32,12 @@ module Wrapi
 
     private 
 
-    def collect_error(err)
+    def errors_array
       @_errors_array ||= []
-      @_errors_array  << err 
+    end
+
+    def collect_error(err)
+      errors_array  << err 
     end
 
 

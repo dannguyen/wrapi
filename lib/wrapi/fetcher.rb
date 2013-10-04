@@ -14,7 +14,7 @@ module Wrapi
                       :has_clients?, :to => :@queue
 
     # current process information
-    delegate :client, :iterations, :latest_response, :to => :current_process, prefix: true, allow_nil: true
+    delegate :client, :iteration_count, :latest_response, :to => :current_process, prefix: true, allow_nil: true
 
 
     def initialize

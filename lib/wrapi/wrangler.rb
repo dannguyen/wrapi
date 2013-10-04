@@ -66,11 +66,13 @@ module Wrapi
 
     def parse_credentials(*args)
       # Abstract
-      return []
+      "WARNING: Called the abstract implementation"
+      []
     end
 
     def load_credentials(*args)
       # Abstract 
+      "WARNING: Called the abstract implementation"
     end
 
     def initialize_client(credential_unit)

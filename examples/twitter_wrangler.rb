@@ -75,12 +75,15 @@ class TwitterWrangler
         # find any client in which rate_limit is within 
 
         # see if this client has any of the same error
-        errors = c.errors_by_kind(error.class).find{|e| e.wrapi_data.process_name == current_erred_process }
+#        errors = c.errors_by_kind(error.class).find{|e| e.wrapi_data.process_name == current_erred_process }
         
         # see if any of those errors have 
-        errors.current_erred_process
+#        errors.current_erred_process
 
-        c.errors_collection.any?{ |e| e == }   
+#        c.errors_collection.any?{ |e| e == }   
+
+        ### STUB TK
+        true
       end
 
 
@@ -340,7 +343,7 @@ end
 
 
 fdir = "./"
-max_iterations = 5
+max_iteration_count = 5
 _x = 0
 
 max_id = 383969384785805311
@@ -356,7 +359,7 @@ t.fetch_batch_user_timeline( 'USAgov',  {count: 1 , max_id: max_id}  ) do |resp|
   max_id =  tweets_array.last.andand.id.to_i - 1
   _x += 1 
 
-  break if _x > max_iterations
+  break if _x > max_iteration_count
 
 end
 

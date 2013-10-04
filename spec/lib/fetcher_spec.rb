@@ -65,8 +65,8 @@ describe "Wrapi::Fetcher" do
       end
 
       context 'delegates methods to #current_process' do 
-        it 'should have #iterations' do 
-          expect(@fetcher.current_process_iterations).to eq 1
+        it 'should have #iteration_count' do 
+          expect(@fetcher.current_process_iteration_count).to eq 1
         end
 
         it 'should have #latest_response' do 

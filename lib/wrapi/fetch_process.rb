@@ -10,13 +10,13 @@ module Wrapi
     include Wrapi::ErrorCollector
 
     attr_reader :arguments, :process_name
-    attr_reader :latest_response, :iterations
+    attr_reader :latest_response, :iteration_count
 
 
     def initialize(client_instance, process_name, opts={})
       set_client(client_instance)
       @process_name = process_name
-      @iterations = 0
+      @iteration_count = 0
       @options = Hashie::Mash.new(opts)
       @latest_response = nil
 
@@ -30,7 +30,7 @@ module Wrapi
 
       # define instance methods using passed-in procs
       # TODO: Refactor
-      _while_condition = @options[:while_condition] || ->(foo_process, args){ foo_process.iterations < 1 }
+      _while_condition = @options[:while_condition] || ->(foo_process, args){ foo_process.iteration_count < 1 }
       raise ArgumentError, ":while_condition needs to respond to :call" unless _while_condition.respond_to?(:call)
       define_singleton_method_by_proc(:while_condition, _while_condition )
 
@@ -48,7 +48,7 @@ module Wrapi
     def serialize
       Hashie::Mash.new(
         process_name: @process_name,
-        iterations: @iterations, 
+        iteration_count: @iteration_count, 
         arguments: @arguments
       )
     end
@@ -116,7 +116,7 @@ module Wrapi
 
 
     # Public: A method invoked by the fetcher, typically when the response is a success
-    # The @iterations is incremented and stores the @latest_response
+    # The @iteration_count is incremented and stores the @latest_response
     # ...careful, proceed! is exposed wherever the fetch_process is yielded.
     def proceed!
       increment_loop_state!
@@ -163,6 +163,13 @@ module Wrapi
       @latest_response.success?
     end
 
+    def has_not_run?
+      !has_run?
+    end
+
+    def has_run?
+      @iteration_count > 0
+    end
 
     # both the while_condition is true and TODO: errors have been resolved
     def ready_to_execute?
@@ -197,7 +204,7 @@ module Wrapi
 
     # Internal: to be deprecated soon, but called during #proceed!
     def increment_loop_state!
-      @iterations += 1
+      @iteration_count += 1
     end
   end
 

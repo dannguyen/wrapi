@@ -51,7 +51,7 @@ describe 'Wrapi::FetchProcess' do
         @foo,
         {
           arguments: @my_arg,
-          while_condition: ->(f_process, args){ f_process.iterations < 1},
+          while_condition: ->(f_process, args){ f_process.iteration_count < 1},
           response_callback: ->(f_process, args){ args[1] << '!'}
         }
       )
@@ -102,7 +102,7 @@ describe 'Wrapi::FetchProcess' do
 
         context 'does NOT run #proceed!' do 
           it 'requires that proceed! is executed manually' do 
-            expect(@process.iterations).to eq 0
+            expect(@process.iteration_count).to eq 0
           end
         end
 
@@ -162,8 +162,8 @@ describe 'Wrapi::FetchProcess' do
       end
 
       context 'post-#proceed! effects' do 
-        it 'should increment @iterations' do 
-          expect(@process.iterations).to eq 1
+        it 'should increment @iteration_count' do 
+          expect(@process.iteration_count).to eq 1
         end
 
         it 'should perform @response_callback' do 
@@ -184,7 +184,7 @@ describe 'Wrapi::FetchProcess' do
         it 'should allow #proceed! no matter what' do 
           # this is probably a bad idea...
           @process.proceed!
-          expect(@process.iterations).to eq 2
+          expect(@process.iteration_count).to eq 2
         end
       end
     end
@@ -215,13 +215,13 @@ describe 'Wrapi::FetchProcess' do
           expect(@serial.process_name).to eq :foo
         end
 
-        it 'should have @iterations' do 
-          expect(@serial.iterations).to eq 0
+        it 'should have @iteration_count' do 
+          expect(@serial.iteration_count).to eq 0
         end
 
-        it 'should match process @iterations when iterated' do
+        it 'should match process @iteration_count when iterated' do
           @process.proceed! 
-          expect(@process.serialize.iterations).to eq 1
+          expect(@process.serialize.iteration_count).to eq 1
         end
 
 

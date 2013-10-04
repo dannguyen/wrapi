@@ -25,8 +25,8 @@ describe 'Wrapi::FetchProcess error_handling' do
         expect(@process.ready_to_execute?).to be_false
       end
 
-      it 'should have no @iterations' do 
-        expect(@process.iterations).to eq 0
+      it 'should have no @iteration_count' do 
+        expect(@process.iteration_count).to eq 0
       end
 
       context 'error tracking' do 

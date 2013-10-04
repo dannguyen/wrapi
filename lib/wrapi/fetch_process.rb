@@ -74,6 +74,7 @@ module Wrapi
         err.wrapi_data = self.serialize        
         response_object = FetchedResponse.error(err)
       else
+        # success!
         response_object = FetchedResponse.success(a_response)
       end  
 

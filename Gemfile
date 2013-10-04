@@ -15,6 +15,7 @@ group :test do
   gem 'oj'
   gem 'koala'
   gem 'google-api-client'
+  gem 'instagram'
 end
 
 gem 'hashie'

@@ -15,9 +15,9 @@ module Wrapi
 
     def initialize(status_type, opts={})
        @status = status_type
-       mash_opts = Hashie::Mash.new(opts)
-       @body = mash_opts.body
-       @error = mash_opts.error
+       mash_opts = opts.dup # Mashie will kill the Instagram overloaded array
+       @body = mash_opts[:body]
+       @error = mash_opts[:error]
     end
 
     def success?

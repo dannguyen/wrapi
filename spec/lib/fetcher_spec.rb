@@ -130,6 +130,11 @@ describe "Wrapi::Fetcher" do
     end
   end
 
+
+    
+  
+
+
   context 'error handling'  do 
     context 'basic error registering' do 
       it 'should allow us to register errors by type' do

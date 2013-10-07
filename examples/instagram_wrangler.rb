@@ -64,7 +64,7 @@ class InstagramWrangler
   end
 
   def parse_credentials(loaded_creds)
-    loaded_creds
+    return loaded_creds # pass through
   end
   
   def load_credentials

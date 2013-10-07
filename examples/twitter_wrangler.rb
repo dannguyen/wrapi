@@ -60,7 +60,7 @@ class TwitterWrangler
 
   # in this case, the object is an array of objects, each of which contains an array of :tokens
   def load_credentials()
-    JSON.parse open( File.expand_path('../examples/creds/twitter-creds.json', __FILE__) ){|f| f.read}
+    JSON.parse open( File.expand_path('../creds/twitter-creds.json', __FILE__) ){|f| f.read}
   end
 
 
@@ -256,7 +256,6 @@ class TwitterWrangler
     fetcher_opts[:arguments] << Hashie::Mash.new(twitter_opts).tap{ |o|
       o[:cursor] ||= - 1
     }
-
 
     fetcher_opts[:while_condition] = ->(loop_state, args){ args[1][:cursor] != 0 }
     fetcher_opts[:response_callback] = ->(loop_state, args){ 

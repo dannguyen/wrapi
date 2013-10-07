@@ -38,12 +38,25 @@ module Wrapi
       Time.now.to_i - @latest_call_timestamp.to_i 
     end
 
+    # this allows any type of action to be associated with 
+    # a client, so that the client logs the method call
+    # even if it isn't invoked directly on the client
 
+    def generic_operation(foo_lambda)
+      foo_lambda.call
+    end
 
     def send_fetch_call(process_name, *arguments )
       before_call
+
+      if process_name == :generic_operation # smelly
+        foo = ->(){ generic_operation(*arguments)  }
+      else
+        foo = ->(){ @client.send process_name, *arguments }
+      end
+
       begin
-        resp = @client.send process_name, *arguments
+        resp = foo.call
       rescue => err 
         log_error(err)
         raise err

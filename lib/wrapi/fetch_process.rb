@@ -37,6 +37,13 @@ module Wrapi
       _response_callback = @options[:response_callback] || ->(foo_process, args){  }
       raise ArgumentError, ":response_callback needs to be a Proc with arity == 2" unless _response_callback.respond_to?(:call) && _response_callback.arity == 2 
       define_singleton_method_by_proc(:response_callback, _response_callback )
+    
+
+      set_operation( ->(){
+           @managed_client.send_fetch_call( process_name, *@arguments )
+        }
+      )
+
     end
 
     # Public: convenient alias for @managed_client
@@ -66,7 +73,7 @@ module Wrapi
       transcribe
       
       begin 
-        a_response = perform_client_operation
+        a_response = perform_operation
 
       rescue StandardError => err        
         set_error(err)
@@ -155,6 +162,10 @@ module Wrapi
       @latest_response.body if latest_response?
     end
 
+    def latest_body?
+      !latest_body.nil?
+    end
+
     def latest_response?
       !latest_response.nil?
     end
@@ -182,13 +193,36 @@ module Wrapi
     end
     
 
+    # used to initialize the operation to run on each iteration 
+    # and in rare cases when it's necessary to change the operation
+    #  after the initial run (koala.get_connections)
+
+    # TK do a test
+    def set_operation(foo_lambda)
+      @_current_op = foo_lambda
+    end
+
+    # In the rare situation when we have methods that aren't called on
+    # a client
+    # for example, Koala:
+    # response = @koala_client.get_connections('person')
+    # response.next_page # to get to the next thing
+    #
+    # we still want to associate it with the current client
+    # which will log the call
+    # so wrap it up in a :generic_operation
+    def set_generic_operation(foo_lambda)
+      wrapped_foo = ->(){
+           @managed_client.send_fetch_call( :generic_operation, foo_lambda)
+        }
+      set_operation(wrapped_foo)
+    end
+
     private
 
-
-
     # Internal: Perform the specified client operation
-    def perform_client_operation
-      @managed_client.send_fetch_call( process_name, *@arguments )
+    def perform_operation
+      @_current_op.call 
     end
 
     # Internal: A poorly named method that obfuscates that this is the Proc passed in to 

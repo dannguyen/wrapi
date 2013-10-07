@@ -190,6 +190,107 @@ describe 'Wrapi::FetchProcess' do
     end
 
 
+    describe '#set_operation' do 
+      before(:each) do 
+        @mock_client = double()
+        @mock_client.stub(:foo){ 'Hello' }
+        
+        @fetcher = Fetcher.new
+        @fetcher.add_clients(@mock_client)
+      end
+
+      it 'sanity test since we are throwing in Fetcher' do 
+        # We're using Fetcher here since FetchProcess requires
+        # annoying conversion to ManagedClient
+        expect(@mock_client).to receive(:foo)
+        @fetcher.fetch_single(:foo)
+      end
+
+      it 'throws an error if the argument does not respond_to?:call' do 
+        pending 'hey'
+#        expect{@fetcher.set_operation()}
+      end
+
+
+      it 'changes the operation that the process executes' do   
+        @newfoo = double()
+        @newfoo.stub(:call){ 'hey'}
+
+        @params = {
+          while_condition: ->(loop_state, resp){ loop_state.iteration_count < 3},
+          response_callback: ->(loop_state, resp){ loop_state.set_operation(@newfoo) }
+        }
+
+     
+        expect(@mock_client).to receive(:foo).exactly(1).times
+        expect(@new_foo).to receive(:call).exactly(2).times
+        # we call #set_operation after the first response, i.e. during :response_callback
+        
+        @fetcher.fetch_batch(:foo, @params )
+      end
+
+
+
+      it 'correctly encloses the non-thread safe value' do
+      # or whatever. This test is of limited use and should be removed
+        arbval = 100
+        dofoo = double()
+        dofoo.stub(:call){ arbval += 10}
+
+        params = {
+          while_condition: ->(loop_state, resp){ loop_state.iteration_count < 3},
+          response_callback: ->(loop_state, resp){ loop_state.set_operation(dofoo) }
+        }
+
+        @fetcher.fetch_batch(:foo, params )
+        expect(arbval).to eq 120
+      end
+
+      describe '#set_generic_operation' do 
+        before(:each) do 
+          client = "client"
+        
+          @fetcher = Fetcher.new
+          @fetcher.add_clients(@client)
+
+        end
+
+        it 'works the same as set_operation, except invokes :set_generic_operation on client' do 
+
+          params = {
+            while_condition: ->(loop_state, resp){ loop_state.iteration_count < 3},
+            response_callback: ->(loop_state, resp){ loop_state.set_generic_operation( ->(){ 42} ) }
+          }          
+          @fetcher.fetch_batch(:upcase, params )
+          client = @fetcher.current_process_client
+
+          expect(@fetcher.current_process_client.call_count).to eq 3
+        end
+
+        it 'without generic_op, we only have one successful call to client' do 
+          non_attached_foo = double()
+          non_attached_foo.stub(:call){ }
+
+          params = {
+            while_condition: ->(loop_state, resp){ loop_state.iteration_count < 3},
+            response_callback: ->(loop_state, resp){ loop_state.set_operation( non_attached_foo ) }
+          }          
+
+          # redundant, but the new foo should receive :call twice out of 3 calls
+          expect{ non_attached_foo.to receive(:call).exactly(2).times }
+
+          @fetcher.fetch_batch(:upcase, params )
+
+          # client is only aware of 1 call, the very first one
+          expect(@fetcher.current_process_client.call_count).to eq 1
+        end
+      end
+
+  end
+
+
+
+
     describe '#serialize' do 
       let(:a_client){ ManagedClient.new({}) }
 

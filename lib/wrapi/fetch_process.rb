@@ -199,6 +199,7 @@ module Wrapi
 
     # TK do a test
     def set_operation(foo_lambda)
+      raise ArgumentError, "Argument must respond to :call, but argument is a #{foo_lambda.class}" unless foo_lambda.respond_to?(:call)
       @_current_op = foo_lambda
     end
 

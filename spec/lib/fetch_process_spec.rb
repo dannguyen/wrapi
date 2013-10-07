@@ -207,8 +207,12 @@ describe 'Wrapi::FetchProcess' do
       end
 
       it 'throws an error if the argument does not respond_to?:call' do 
-        pending 'hey'
-#        expect{@fetcher.set_operation()}
+
+        params =  {
+                  response_callback: ->(loop_state, resp){ loop_state.set_operation('Not a foo!') }
+                }
+      
+        expect{@fetcher.fetch(:foo, params) }.to raise_error ArgumentError
       end
 
 

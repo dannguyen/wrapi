@@ -49,14 +49,15 @@ module Wrapi
     def send_fetch_call(process_name, *arguments )
       before_call
 
-      if process_name == :generic_operation # smelly
-        foo = ->(){ generic_operation(*arguments)  }
-      else
-        foo = ->(){ @client.send process_name, *arguments }
-      end
+      # if process_name == :generic_operation # smelly
+      #   foo = ->(){ generic_operation(*arguments)  }
+      # else
+      #   foo = ->(){ @client.send process_name, *arguments }
+      # end
 
       begin
-        resp = foo.call
+        # this should automatically delgate to client
+        resp = send process_name, *arguments  #foo.call
       rescue => err 
         log_error(err)
         raise err

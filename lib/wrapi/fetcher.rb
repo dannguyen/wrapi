@@ -171,8 +171,9 @@ module Wrapi
 
 
 
-    # same as fetch, but enforces the existence of while_condition
+    # same as fetch, but enforces the existence of a block
     def fetch_batch(client_foo, opts, &blk)
+      raise ArgumentError, "Block is expected for batch call" unless block_given?
       fetch(client_foo, opts, :batch, &blk)
     end
 

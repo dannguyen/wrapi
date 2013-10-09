@@ -7,8 +7,6 @@ class FacebookWrangler
 
   SENSIBLE_FEED_LIMIT = 100
 
-
-
   ############# singular
   def fetch_object(object_id)
     fetch_single :get_object, arguments: [object_id]
@@ -36,6 +34,10 @@ class FacebookWrangler
     fetch_batch_connections(page_id, :feed, f_opts, &blk)
   end
 
+  def fetch_batch_posts(page_id, f_opts={}, &blk)
+    fetch_batch_connections(page_id, :posts, f_opts, &blk)
+  end
+
 
 
 
@@ -60,13 +62,13 @@ class FacebookWrangler
   private
     # a convenience method for doing all type of koala#next_page calls
   def koala_next_page_proc 
-     ->(loop_state, args) do
+    ->(loop_state, args) do
         koala_resp = loop_state.latest_body 
         loop_state.set_generic_operation ->(){
           # use next_page to paginate through
           koala_resp = koala_resp.next_page
         }
-     end   
+    end   
   end
 
 
@@ -104,7 +106,6 @@ class FacebookWrangler
 
     fetch_batch :get_connections, params, &blk
   end
-
 end
 
 
@@ -118,13 +119,25 @@ profile = wrangler.fetch_object('theenjoycentre')
 
 feed = [] 
 count = 0
-wrangler.fetch_batch_feed('theenjoycentre') do |f|  
+wrangler.fetch_batch_feed('Delta') do |f|  
   fbody = f.body  
-  feed << fbody
+  feed += fbody
   count += 1
   puts count
-  sleep 2
+  sleep 2.4
 end
+
+
+posts = [] 
+count = 0
+wrangler.fetch_batch_posts('Delta') do |f|  
+  fbody = f.body  
+  posts += fbody
+  count += 1
+  puts count
+  sleep 2.4
+end
+
 
 object_id = '666240360061816'
 comments = []

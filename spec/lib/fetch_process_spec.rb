@@ -230,7 +230,7 @@ describe 'Wrapi::FetchProcess' do
         expect(@new_foo).to receive(:call).exactly(2).times
         # we call #set_operation after the first response, i.e. during :response_callback
         
-        @fetcher.fetch_batch(:foo, @params )
+        @fetcher.fetch_batch(:foo, @params ){|resp| }
       end
 
 
@@ -246,7 +246,7 @@ describe 'Wrapi::FetchProcess' do
           response_callback: ->(loop_state, resp){ loop_state.set_operation(dofoo) }
         }
 
-        @fetcher.fetch_batch(:foo, params )
+        @fetcher.fetch_batch(:foo, params ){|resp| }
         expect(arbval).to eq 120
       end
 
@@ -265,7 +265,7 @@ describe 'Wrapi::FetchProcess' do
             while_condition: ->(loop_state, resp){ loop_state.iteration_count < 3},
             response_callback: ->(loop_state, resp){ loop_state.set_generic_operation( ->(){ 42} ) }
           }          
-          @fetcher.fetch_batch(:upcase, params )
+          @fetcher.fetch_batch(:upcase, params ){|resp| }
           client = @fetcher.current_process_client
 
           expect(@fetcher.current_process_client.call_count).to eq 3
@@ -283,7 +283,7 @@ describe 'Wrapi::FetchProcess' do
           # redundant, but the new foo should receive :call twice out of 3 calls
           expect{ non_attached_foo.to receive(:call).exactly(2).times }
 
-          @fetcher.fetch_batch(:upcase, params )
+          @fetcher.fetch_batch(:upcase, params ){|resp| }
 
           # client is only aware of 1 call, the very first one
           expect(@fetcher.current_process_client.call_count).to eq 1

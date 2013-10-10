@@ -24,7 +24,7 @@ class TwitterWrangler
 
   MAX_COUNT_OF_TWEETS_BATCH = 200
 
-  DEFAULT_QUERIES = {
+  DEFAULT_QUERY_PARAMS = {
     :user_timeline => {
       count: MAX_COUNT_OF_TWEETS_BATCH,
       include_rts: true,
@@ -191,7 +191,7 @@ class TwitterWrangler
 
     opts = Hashie::Mash.new(twitter_opts).tap do |o|
       # tk: refactor
-      DEFAULT_QUERIES[:user_timeline].each_pair do |d_key, d_value|
+      DEFAULT_QUERY_PARAMS[:user_timeline].each_pair do |d_key, d_value|
         o[d_key] ||= d_value
       end
     end

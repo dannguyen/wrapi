@@ -122,7 +122,7 @@ describe "Rate limiting" do
 
               # note, rate-limit isn't checked here in the second client
               @wrangler.add_clients(@client2)
-              @wrangler.fetch_batch_user_timeline(@screen_name, max_id: 383969384785805311)
+              @wrangler.fetch_batch_user_timeline(@screen_name, max_id: 383969384785805311){|resp| }
 
               clients = @wrangler.clients
               expect(clients[0].call_count).to eq 3

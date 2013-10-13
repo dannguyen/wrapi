@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "wrapi"
   gem.homepage = "http://github.com/dannguyen/wrapi"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{A wrapper for API calling libraries}
+  gem.description = %Q{A thin layer for API calls}
   gem.email = "dansonguyen@gmail.com"
   gem.authors = ["dannguyen"]
   # dependencies defined in Gemfile

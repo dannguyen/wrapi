@@ -114,7 +114,8 @@ end
 load File.expand_path './examples/facebook_wrangler.rb'
 wrangler = FacebookWrangler.init_clients
 
-profile = wrangler.fetch_object('theenjoycentre')
+screen_name = 'theenjoycentre'
+profile = wrangler.fetch_object(screen_name)
 
 
 feed = [] 

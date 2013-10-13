@@ -9,7 +9,7 @@ class YoutubeWrangler
   MAX_RESULTS = 50
   DEFAULT_PARTS = %w(id snippet contentDetails status)
 
-
+# Note all fetches end up invoking get_list, and there's no real batch calls
 
 
 

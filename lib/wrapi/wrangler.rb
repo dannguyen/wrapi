@@ -31,6 +31,10 @@ module Wrapi
 
         return w
       end
+
+      def init!(*args)
+        init_clients(*args)
+      end
     end
     
 

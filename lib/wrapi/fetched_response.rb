@@ -14,11 +14,25 @@ module Wrapi
     end
 
     def initialize(status_type, opts={})
-       @status = status_type
-       mash_opts = opts.dup # Mashie will kill the Instagram overloaded array
+       mash_opts = opts.dup
+       @status = status_type        
        @body = mash_opts[:body]
        @error = mash_opts[:error]
     end
+
+    # note: we use :dup instead of Hashie::Mash.new because 
+    # Mash will kill the overloaded array that Instagram returns
+    # 
+    # arr = instagram_wrangler.fetch
+    # arr.respond_to?(:pagination) #=> true 
+    # mash = Hashie::Mash{body: arr}
+    #
+    # mash.body.respond_to?(:pagination) #=> false
+
+
+
+
+
 
     def success?
       @status == :success
@@ -40,6 +54,16 @@ module Wrapi
     def trim_body!
       @body = []
     end
+
+
+    def method_missing(name, *args, &block)
+      if body.respond_to?(name)
+        body.send(name, *args, &block)
+      else
+        super
+      end
+    end
+
 
   end
 end

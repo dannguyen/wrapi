@@ -183,12 +183,27 @@ module Wrapi
     # Obviously, you're expecting only a single call and response here
     # e.g. fetch_single_tweet(id: 10101099 )
     #
-    # raises error if block is given
+    # unlike batch, will return f_Response as well as yielding to a block
     def fetch_single(client_foo, opts={}, &blk)
-      raise ArgumentError, "Block is not expected for singular call" if block_given?
+      f_response = nil
+      fetch(client_foo, opts, :single) do |resp|
+        f_response = resp
+
+        yield f_response if block_given?
+      end
+
+      return f_response
+    end
+
+    # raises error if block is given
+
+    # returns just the body
+    def fetch_simple(client_foo, opts={})
+      raise ArgumentError, "Block is not expected for simple call" if block_given?
       arr = fetch(client_foo, opts, :single)
 
       return arr.first.body
     end
+
   end
 end

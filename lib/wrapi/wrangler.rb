@@ -17,7 +17,7 @@ module Wrapi
       # for now, a Wrangler is responsible for one fetcher
       delegate :add_clients,
                         :has_clients?, :bare_clients, :clients, 
-                        :fetch_single, :fetch_batch, :fetch,
+                        :fetch_single, :fetch_batch, :fetch_simple, :fetch,
                         :register_error_handler, :get_error_handler,
                           :to => :@fetcher
 

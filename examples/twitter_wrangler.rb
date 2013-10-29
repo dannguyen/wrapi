@@ -68,24 +68,25 @@ class TwitterWrangler
     register_error_handler( Twitter::Error::TooManyRequests ) do |_fetcher, error|
 
       # get failed method at hand
-      current_erred_process = error.wrapi_data.process_name
+      current_erred_process = error.process_name
+      current_error_class = error.class
 
-
-      _fetcher.switch_to_new_client! do |c| 
+      _fetcher.switch_to_new_client! do |potential_client| 
         # find any client in which rate_limit is within 
 
-        # see if this client has any of the same error
-#        errors = c.errors_by_kind(error.class).find{|e| e.wrapi_data.process_name == current_erred_process }
-        
-        # see if any of those errors have 
-#        errors.current_erred_process
+        # see if this client has any of the same error and find the latest one        
+        latest_error = potential_client.errors_by_kind(current_error_class).select{|e| e.process_name == current_erred_process }.last
 
-#        c.errors_collection.any?{ |e| e == }   
-
-        ### STUB TK
-        true
+        if latest_error.nil?
+          true # no errors found
+        else
+          if rate_lim = latest_error.rate_limit 
+            Time.now > rate_lim.reset_at # return true if the current time is past the reset_at time
+          else
+            false
+          end
+        end
       end
-
 
     end
   end
@@ -184,36 +185,36 @@ class TwitterWrangler
     end
   end
 
+  # This version does not work
+  # def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
 
-  def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
+  #   fetch_options = prepare_fetcher_options
 
-    fetch_options = prepare_fetcher_options
+  #   opts = Hashie::Mash.new(twitter_opts).tap do |o|
+  #     # tk: refactor
+  #     DEFAULT_QUERY_PARAMS[:user_timeline].each_pair do |d_key, d_value|
+  #       o[d_key] ||= d_value
+  #     end
+  #   end
 
-    opts = Hashie::Mash.new(twitter_opts).tap do |o|
-      # tk: refactor
-      DEFAULT_QUERY_PARAMS[:user_timeline].each_pair do |d_key, d_value|
-        o[d_key] ||= d_value
-      end
-    end
+  #   fetch_options[:arguments] = [user_id, opts]
 
-    fetch_options[:arguments] = [user_id, opts]
+  #   fetch_options[:while_condition] = ->(loop_state, args) do 
+  #     o = args[1]
+  #     o[:max_id] > o[:since_id]
+  #   end
 
-    fetch_options[:while_condition] = ->(loop_state, args) do 
-      o = args[1]
-      o[:max_id] > o[:since_id]
-    end
+  #   fetch_options[:response_callback] = ->(loop_state, args) do 
+  #     opts = args[1]
+  #     if tweets_array = loop_state.latest_body
+  #       opts[:max_id] =  tweets_array.last.andand.id.to_i - 1
+  #     end
 
-    fetch_options[:response_callback] = ->(loop_state, args) do 
-      opts = args[1]
-      if tweets_array = loop_state.latest_body
-        opts[:max_id] =  tweets_array.last.andand.id.to_i - 1
-      end
+  #     puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
+  #   end
 
-      puts "max_id: #{opts.max_id}\t since_id: #{opts.since_id}"
-    end
-
-    @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 
-  end
+  #   @fetcher.fetch_batch(:user_timeline, fetch_options, &blk) 
+  # end
 
 
   def fetch_batch_user_timeline(user_id, twitter_opts={}, &blk)
@@ -337,6 +338,9 @@ t.fetch_batch_user_timeline( 'dancow' ) do |resp|
   end
 end
 
+arr = []; t.fetch_batch_memberships('dancow') do |resp|
+  arr << resp
+end
 
 # generate fixture data
 

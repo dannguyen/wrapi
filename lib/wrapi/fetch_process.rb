@@ -183,6 +183,7 @@ module Wrapi
       @iteration_count > 0
     end
 
+    # TODO: while_condition runs twice, whtatver
     # both the while_condition is true and TODO: errors have been resolved
     def ready_to_execute?
       (while_condition? == true) && !(unfixed_error?)

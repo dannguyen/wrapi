@@ -32,7 +32,7 @@ module Wrapi
         filtered_clients = clients
       end
 
-      filtered_clients.select{|c| c != current_client}.first
+      filtered_clients.find{|c| c != current_client}
     end
 
     def bare_clients

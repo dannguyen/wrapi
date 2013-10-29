@@ -38,7 +38,7 @@ class YoutubeWrangler
     youtube_usernames.each do |username|
       yid << convert_username_to_id(username)
     end
-    get_channel_by_id(yid, opts)
+    fetch_channel_by_id(yid, opts)
   end
 
 

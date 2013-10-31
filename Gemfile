@@ -18,7 +18,6 @@ group :test do
   gem 'instagram'
 end
 
-gem 'paper_trail'
 gem 'hashie'
 gem 'andand'
 gem 'activesupport', '~> 3.2.14'

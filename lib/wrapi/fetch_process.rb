@@ -12,7 +12,6 @@ module Wrapi
     attr_reader :arguments, :process_name
     attr_reader :latest_response, :iteration_count
 
-
     def initialize(client_instance, process_name, opts={})
       set_client(client_instance)
       @process_name = process_name

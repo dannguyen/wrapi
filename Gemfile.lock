@@ -83,7 +83,6 @@ GEM
       multi_xml (~> 0.5)
       rack (~> 1.2)
     oj (2.1.7)
-    paper_trail (1.5.3)
     pry (0.9.12.2)
       coderay (~> 1.0.5)
       method_source (~> 0.8)
@@ -135,7 +134,6 @@ DEPENDENCIES
   jeweler (~> 1.8.8)
   koala
   oj
-  paper_trail
   pry
   rdoc (~> 3.12)
   rspec (~> 2.14.0)

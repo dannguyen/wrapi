@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["dannguyen"]
-  s.date = "2013-10-10"
+  s.date = "2013-10-31"
   s.description = "A thin layer for API calls"
   s.email = "dansonguyen@gmail.com"
   s.extra_rdoc_files = [
@@ -25,10 +25,6 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
-    "examples/facebook_wrangler.rb",
-    "examples/instagram_wrangler.rb",
-    "examples/twitter_wrangler.rb",
-    "examples/youtube_wrangler.rb",
     "lib/wrapi.rb",
     "lib/wrapi/client_queue.rb",
     "lib/wrapi/error.rb",
@@ -56,7 +52,8 @@ Gem::Specification.new do |s|
     "spec/lib/fetcher_spec.rb",
     "spec/lib/managed_client_spec.rb",
     "spec/lib/wrangler_spec.rb",
-    "spec/spec_helper.rb"
+    "spec/spec_helper.rb",
+    "wrapi.gemspec"
   ]
   s.homepage = "http://github.com/dannguyen/wrapi"
   s.licenses = ["MIT"]

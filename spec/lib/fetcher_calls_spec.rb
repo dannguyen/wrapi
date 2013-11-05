@@ -183,10 +183,13 @@ describe 'Wrapi::Fetcher' do
 
   describe '#fetch_single' do 
     it 'returns first FetchedResponse body as a convenience' do 
-      expect(@fetcher.fetch_single(:call_the_api)).to eq 'Hello'
+      resp = @fetcher.fetch_single(:call_the_api)
+      expect(resp).to be_a FetchedResponse
+      expect(resp.body).to eq 'Hello'
     end
 
     it 'raises an error if block is given' do 
+      pending "This is deprecated, fetch single now accepts a block"
       expect{@fetcher.fetch_single(:call_the_api){|x| } }.to raise_error ArgumentError
     end
   end

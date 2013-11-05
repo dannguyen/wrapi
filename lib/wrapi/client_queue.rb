@@ -51,6 +51,10 @@ module Wrapi
       !empty?
     end
 
+    def shuffle!
+      @_queue.shuffle! 
+    end
+
     def size
       @_queue.count
     end

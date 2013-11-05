@@ -31,6 +31,18 @@ describe "Wrapi::Fetcher" do
     end
   end
 
+  describe 'initialization options' do
+
+    it 'should allow shuffle: false' do 
+      a_fetcher = Fetcher.new(shuffle: false)
+      expect(a_fetcher.shuffle_clients_before_fetch?).to be_false
+    end
+
+    it 'by default will shuffle clients before fetch' do 
+      a_fetcher = Fetcher.new
+      expect(a_fetcher.shuffle_clients_before_fetch?).to be_true
+    end
+  end
 
   describe '#has_process? and #current_process_client' do 
     before(:each) do 

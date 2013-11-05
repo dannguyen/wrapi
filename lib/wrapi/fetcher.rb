@@ -11,13 +11,18 @@ module Wrapi
     # queue methods
     delegate :clients, :find_client, :remove_client, 
                       :bare_clients, :find_next_client, 
-                      :has_clients?, :to => :@queue
+                      :has_clients?,
+            {:to => :@queue}
 
     # current process information
-    delegate :client, :iteration_count, :latest_response, :to => :current_process, prefix: true, allow_nil: true
+    delegate :client, :iteration_count, :latest_response, 
+          {:to => :current_process, prefix: true, allow_nil: true}
 
 
-    def initialize
+    def initialize(opts={})
+      # by default, shuffle the clients before each fetch call
+      @shuffle_before_fetch = opts[:shuffle] == false ? false : true
+
       @queue = ClientQueue.new
       @error_handlers = Hash.new
       @fetch_process = nil
@@ -36,9 +41,12 @@ module Wrapi
       @queue.size
     end
 
+    def shuffle_clients_before_fetch?
+      @shuffle_before_fetch
+    end
 
-    # Public: not used
-    def shuffle_clients
+    # untested
+    def shuffle_clients!
       @queue.shuffle!
     end
 
@@ -102,6 +110,12 @@ module Wrapi
 
     def fetch(foo_name, opts={}, fetch_mode=:single, &callback_on_response_object)
       raise ArgumentError, "Second argument must be Hash, not #{opts.class}" unless opts.is_a?(Hash)
+
+      # shuffle clients here, TK: codesmell
+      if shuffle_clients_before_fetch?
+        shuffle_clients!
+      end
+
       client = find_client
 
       @fetch_process = case fetch_mode.to_s
@@ -195,8 +209,8 @@ module Wrapi
       return f_response
     end
 
+    # UNTESTED: ad-hoc replacement for fetch_single, which now accepts a block
     # raises error if block is given
-
     # returns just the body
     def fetch_simple(client_foo, opts={})
       raise ArgumentError, "Block is not expected for simple call" if block_given?

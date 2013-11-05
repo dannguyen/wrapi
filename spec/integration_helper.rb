@@ -1,3 +1,5 @@
+# DEPRECATED, not used
+
 require 'spec_helper'
 require 'webmock/rspec'
 require 'stringio'

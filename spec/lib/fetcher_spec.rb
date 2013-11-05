@@ -31,7 +31,7 @@ describe "Wrapi::Fetcher" do
     end
   end
 
-  describe 'initialization options' do
+  describe 'shuffle initialization options' do
 
     it 'should allow shuffle: false' do 
       a_fetcher = Fetcher.new(shuffle: false)

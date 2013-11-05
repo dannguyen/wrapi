@@ -18,7 +18,8 @@ module Wrapi
       delegate :add_clients,
                         :has_clients?, :bare_clients, :clients, 
                         :fetch_single, :fetch_batch, :fetch_simple, :fetch,
-                        :register_error_handler, :get_error_handler,
+                        :register_error_handler, :get_error_handler, 
+                        :shuffle_clients_before_fetch?, # ad-hoc 
                           :to => :@fetcher
 
     end # end included
@@ -26,7 +27,7 @@ module Wrapi
 
     module ClassMethods
       def init_clients(*args)
-        w = self.new 
+        w = self.new(*args) 
         w.load_credentials_and_initialize_clients(*args)
 
         return w
@@ -38,8 +39,13 @@ module Wrapi
     end
     
 
-    def initialize
-      @fetcher = Fetcher.new
+    # this is where shuffling gets passed in
+    def initialize(*args)
+      if args[0].is_a?(Hash)
+        @fetcher = Fetcher.new args[0]
+      else
+        @fetcher = Fetcher.new
+      end
       @logger = nil
       register_error_handlers
     end

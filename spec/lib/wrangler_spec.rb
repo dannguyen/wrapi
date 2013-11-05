@@ -15,6 +15,21 @@ describe 'Wrapi::Wrangler' do
     end
   end
 
+  describe 'shuffle initialization options' do #ad-hoc, to make sure this option is delegated to fetcher
+
+    it 'should allow shuffle: false' do 
+      wrangler = AwesomeApeWrangler.new(shuffle: false)
+      expect(wrangler.shuffle_clients_before_fetch?).to be_false
+    end
+
+    it 'by default will shuffle clients before fetch' do 
+      wrangler = AwesomeApeWrangler.new
+      expect(wrangler.shuffle_clients_before_fetch?).to be_true
+    end
+  end
+
+
+
 
   context '@logger is an attr_accessor' do
     it 'should be nil by default' do 
